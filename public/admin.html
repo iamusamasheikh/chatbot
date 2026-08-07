@@ -55,9 +55,10 @@
 
   fetch('/api/admin/sites', { credentials: 'same-origin' }).then(auth).then(function (sites) {
     document.getElementById('sitesBox').innerHTML =
-      '<table><tr><th>Site</th><th>Name</th><th>Owner</th><th>KB</th><th>Sessions</th><th>Leads</th></tr>' +
+      '<table><tr><th>Site ID</th><th>Name</th><th>Website URL</th><th>Owner</th><th>KB</th><th>Sessions</th><th>Leads</th></tr>' +
       sites.map(function (s) {
-        return '<tr><td>' + esc(s.id) + '</td><td>' + esc(s.name) + '</td><td>' + (s.ownerId || '—') + '</td>' +
+        var urlLink = s.siteUrl ? '<a href="' + esc(s.siteUrl) + '" target="_blank" rel="noopener">' + esc(s.siteUrl) + '</a>' : '<span style="color:#999">—</span>';
+        return '<tr><td><b>' + esc(s.id) + '</b></td><td>' + esc(s.name) + '</td><td>' + urlLink + '</td><td>User #' + (s.ownerId || '—') + '</td>' +
           '<td>' + (s.trained ? '<span class="badge ok">' + s.chunks + ' chunks</span>' : '<span class="badge no">untrained</span>') + '</td>' +
           '<td>' + s.sessions + '</td><td>' + s.leads + '</td></tr>';
       }).join('') + '</table>';
