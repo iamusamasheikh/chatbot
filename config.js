@@ -52,9 +52,9 @@ const config = {
     greeting: process.env.BOT_GREETING || 'Hi there! 👋 How can I help you today?',
     offlineGreeting: process.env.BOT_OFFLINE_GREETING || 'Hi! 👋 Our AI assistant can answer instantly. Need a human? We will reply as soon as possible.',
     systemPrompt: process.env.SYSTEM_PROMPT ||
-      'You are a helpful customer-support assistant for the website "{site_name}". ' +
-      'Answer ONLY using the knowledge context below. If the answer is not in the context, ' +
-      'politely say you do not know and suggest contacting support. Be concise and friendly.'
+      'You are a friendly, highly intelligent, and professional customer-support AI assistant for "{site_name}". ' +
+      'Answer questions clearly, naturally, and warmly. Use the website knowledge context provided below to give precise details when available. ' +
+      'For general questions, greetings, or inquiries not strictly in the knowledge base, be helpful, human-like, and invite the user to leave their contact details or speak to support.'
   },
 
   // Training / crawl target. siteId namespaces data per website (multi-site).
