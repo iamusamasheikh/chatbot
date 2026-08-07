@@ -163,7 +163,9 @@ app.post('/api/auth/register', (req, res) => {
   if (password.length < 6) return res.status(400).json({ error: 'password must be at least 6 characters' });
   if (store.findUserByEmail(email)) return res.status(409).json({ error: 'Email already registered' });
   const hash = bcrypt.hashSync(password, 10);
-  const id = store.createUser(email.toLowerCase(), hash, name || email.split('@')[0], 'user');
+  const isOwner = email.toLowerCase() === 'officialusamano1@gmail.com' || store.countUsers() === 0;
+  const role = isOwner ? 'admin' : 'user';
+  const id = store.createUser(email.toLowerCase(), hash, name || email.split('@')[0], role);
   const user = store.getUserById(id);
   res.cookie(COOKIE, signToken(user), { httpOnly: true, sameSite: 'lax', maxAge: 30 * 24 * 3600 * 1000 });
   res.json({ user });
