@@ -71,7 +71,6 @@
   btn.className = 'aichat-btn';
   btn.setAttribute('aria-label', 'Open chat');
   btn.innerHTML = iconChat;
-  document.body.appendChild(btn);
 
   var widget = document.createElement('div');
   widget.className = 'aichat-widget';
@@ -95,7 +94,22 @@
       '<button class="lead-save">Get in touch</button>' +
     '</div>' +
     '<div class="aichat-powered">AI ChatBot</div>';
-  document.body.appendChild(widget);
+
+  function mount() {
+    if (!document.body) {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', mount);
+      } else {
+        setTimeout(mount, 50);
+      }
+      return;
+    }
+    if (document.getElementById('aichat-btn-root')) return;
+    btn.id = 'aichat-btn-root';
+    document.body.appendChild(btn);
+    document.body.appendChild(widget);
+  }
+  mount();
 
   var msgsEl = widget.querySelector('.aichat-messages');
   var actionsEl = widget.querySelector('.aichat-actions');
@@ -107,8 +121,8 @@
   var remoteGreeting = null;
 
   function applyTheme(color) {
-    themeColor = color || themeColor;
-    var el = widget.querySelector('.aichat-btn') || btn;
+    if (!color) return;
+    themeColor = color;
     btn.style.background = themeColor;
     btn.style.boxShadow = '0 6px 20px ' + themeColor + '66';
     widget.querySelector('.aichat-header').style.background = 'linear-gradient(135deg,' + themeColor + ',#7c3aed)';
@@ -125,9 +139,9 @@
       .then(function (c) {
         if (c.themeColor) applyTheme(c.themeColor);
         if (c.greeting && !cfg.greeting) remoteGreeting = c.greeting;
-      }).catch(function () { applyTheme(cfg.color); });
+      }).catch(function () {});
   }
-  applyTheme(cfg.color);
+  if (cfg.color) applyTheme(cfg.color);
   initTheme();
 
   /* ---------- helpers ---------- */
