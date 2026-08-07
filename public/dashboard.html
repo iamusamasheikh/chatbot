@@ -168,7 +168,8 @@
 
   /* ---- auth ---- */
   req('/api/auth/me').then(function (d) {
-    document.getElementById('uname').textContent = d.user.name + ' · ' + d.user.email + (d.user.role === 'admin' ? ' (admin)' : '');
+    var adminBtn = d.user.role === 'admin' ? ' <a href="/admin" class="btn small green" style="margin-left:8px;text-decoration:none;display:inline-block">👑 Super Admin Panel</a>' : '';
+    document.getElementById('uname').innerHTML = esc(d.user.name) + ' (' + esc(d.user.email) + ')' + adminBtn;
   });
   document.getElementById('logout').addEventListener('click', function () {
     fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }).then(function () { location.href = '/login'; });
@@ -177,6 +178,7 @@
   /* ---- sites ---- */
   function loadSites() {
     req('/api/my/sites').then(function (sites) {
+      if (!Array.isArray(sites)) sites = [];
       var box = document.getElementById('siteList');
       box.innerHTML = sites.map(function (s) {
         return '<div class="site ' + (currentSite === s.id ? 'active' : '') + '" data-id="' + esc(s.id) + '">' +
@@ -185,14 +187,18 @@
       Array.prototype.forEach.call(box.querySelectorAll('.site'), function (el) {
         el.addEventListener('click', function () { currentSite = el.getAttribute('data-id'); loadSites(); loadAll(); });
       });
-      if (!currentSite && sites.length) { currentSite = sites[0].id; loadSites(); loadAll(); }
+      if (!currentSite && sites.length) { currentSite = sites[0].id; loadAll(); }
       document.getElementById('noSite').style.display = sites.length ? 'none' : 'block';
       document.getElementById('workspace').style.display = sites.length ? 'block' : 'none';
+    }).catch(function () {
+      document.getElementById('noSite').style.display = 'block';
+      document.getElementById('workspace').style.display = 'none';
     });
   }
 
   document.getElementById('createSite').addEventListener('click', function () {
-    document.getElementById('newSiteBox').style.display = document.getElementById('newSiteBox').style.display === 'none' ? 'flex' : 'none';
+    var b = document.getElementById('newSiteBox');
+    b.style.display = (b.style.display === 'none' || !b.style.display) ? 'flex' : 'none';
   });
   document.getElementById('nsSave').addEventListener('click', function () {
     var name = document.getElementById('nsName').value.trim();
@@ -200,6 +206,7 @@
     if (!name) { alert('Enter a site name'); return; }
     req('/api/my/sites', { method: 'POST', body: { name: name, siteUrl: url } }).then(function (d) {
       document.getElementById('nsName').value = ''; document.getElementById('nsUrl').value = '';
+      document.getElementById('newSiteBox').style.display = 'none';
       currentSite = d.siteId; loadSites(); loadAll();
     });
   });
@@ -237,8 +244,8 @@
         '    siteId: "' + currentSite + '",\n' +
         '    title: "Support",\n' +
         '    greeting: "Hi! How can I help?"\n' +
-        '  };\n</script>\n' +
-        '<script src="' + location.origin + '/widget.js" defer></script>';
+        '  };\n<\/script>\n' +
+        '<script src="' + location.origin + '/widget.js" defer><\/script>';
       document.getElementById('trainInfo').textContent = d.kb.indexed ? ('Last trained: ' + new Date(d.kb.trainedAt).toLocaleString()) : 'Not trained yet. Enter your website URL.';
       // settings
       document.getElementById('stName').value = d.siteName || '';
