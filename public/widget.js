@@ -9,8 +9,14 @@
   window.__AIChatWidgetLoaded = true;
 
   var cfg = window.AIChatConfig || {};
-  var server = (cfg.url || '').replace(/\/$/, '');
-  var siteId = cfg.siteId || 'default';
+  var scriptTag = document.currentScript || (function () {
+    var scripts = document.getElementsByTagName('script');
+    return scripts[scripts.length - 1];
+  })();
+  var autoServer = '';
+  try { if (scriptTag && scriptTag.src) autoServer = new URL(scriptTag.src).origin; } catch (e) {}
+  var server = (cfg.server || cfg.url || autoServer || 'https://divafits.com').replace(/\/$/, '');
+  var siteId = cfg.siteId || (scriptTag && scriptTag.getAttribute('data-site-id')) || 'default';
   var ENABLE_LEAD = cfg.enableLead !== false;
   var themeColor = cfg.color || '#2563eb';
   var hasHeading = false;
@@ -29,10 +35,10 @@
 
   var css = [
     '.aichat *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}',
-    '.aichat-btn{position:fixed;right:20px;bottom:20px;width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 25px rgba(37,99,235,.45);z-index:2147483000;transition:transform .2s ease,box-shadow .2s ease}',
-    '.aichat-btn:hover{transform:scale(1.08) rotate(-3deg);box-shadow:0 12px 30px rgba(37,99,235,.6)}',
-    '.aichat-widget{position:fixed;right:20px;bottom:90px;width:360px;max-width:calc(100vw - 40px);height:520px;max-height:calc(100vh - 120px);background:#fff;border-radius:16px;overflow:hidden;display:none;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,.25);z-index:2147483000}',
-    '.aichat-widget.open{display:flex}',
+    '.aichat-btn{position:fixed !important;right:20px !important;bottom:20px !important;width:60px !important;height:60px !important;border-radius:50% !important;background:linear-gradient(135deg,#2563eb,#7c3aed) !important;color:#fff !important;border:none !important;cursor:pointer !important;display:flex !important;align-items:center !important;justify-content:center !important;box-shadow:0 8px 25px rgba(37,99,235,.45) !important;z-index:2147483647 !important;transition:transform .2s ease,box-shadow .2s ease !important}',
+    '.aichat-btn:hover{transform:scale(1.08) rotate(-3deg) !important;box-shadow:0 12px 30px rgba(37,99,235,.6) !important}',
+    '.aichat-widget{position:fixed !important;right:20px !important;bottom:90px !important;width:360px !important;max-width:calc(100vw - 40px) !important;height:520px !important;max-height:calc(100vh - 120px) !important;background:#fff !important;border-radius:16px !important;overflow:hidden !important;display:none;flex-direction:column !important;box-shadow:0 12px 40px rgba(0,0,0,.25) !important;z-index:2147483647 !important}',
+    '.aichat-widget.open{display:flex !important}',
     '.aichat-header{background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px}',
     '.aichat-avatar{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:18px}',
     '.aichat-header-info{flex:1;min-width:0}.aichat-name{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.aichat-status{font-size:12px;opacity:.9}',
