@@ -67,10 +67,16 @@
     err.style.display = 'none';
   });
 
+  var emailField = document.getElementById('email');
+  var passwordField = document.getElementById('password');
+
   document.getElementById('form').addEventListener('submit', function (e) {
     e.preventDefault();
-    var body = { email: email.value.trim(), password: password.value };
-    if (mode === 'signup') body.name = name.value.trim() || email.value.split('@')[0];
+    var emailVal = (emailField.value || '').trim();
+    var passVal = passwordField.value || '';
+    var nameVal = (nameField.value || '').trim();
+    var body = { email: emailVal, password: passVal };
+    if (mode === 'signup') body.name = nameVal || emailVal.split('@')[0];
     submit.disabled = true; submit.textContent = 'Please wait…';
     fetch('/api/auth/' + mode, {
       method: 'POST',
