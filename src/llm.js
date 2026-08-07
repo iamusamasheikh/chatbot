@@ -88,18 +88,24 @@ function localAnswer(question, siteId) {
     return 'Hi there! 👋 How can I help you today? Feel free to ask me any question about our website or services!';
   }
 
+  if (qLower.includes('owner') || qLower.includes('founder') || qLower.includes('who owns')) {
+    return 'Our team would be glad to connect you directly with management! You can leave your contact details here or click "Talk to a human" to chat live.';
+  }
+
+  if (qLower.includes('email') || qLower.includes('contact') || qLower.includes('phone') || qLower.includes('reach')) {
+    return 'You can leave your contact info right here in the chat, and our support team will get in touch with you shortly!';
+  }
+
   const kb = store.getKnowledge(siteId);
   if (!kb.indexed || !kb.chunks || !(kb.chunkCount || (kb.chunks.docs && kb.chunks.docs.length))) {
-    return 'Hi! 👋 I am currently learning about this website. Please ask a specific question or leave your contact info!';
+    return 'Hi! 👋 I am currently learning about this website. How can I help you today?';
   }
   const hits = indexer.search(kb.chunks, question, 1);
   if (!hits.length) {
-    return 'I could not find that specific detail in my knowledge base. Feel free to leave your contact info or ask to talk to a human agent!';
+    return 'I would love to help with that! Feel free to leave your contact info or click "Talk to a human" to connect with our support team!';
   }
   const top = hits[0];
-  let answer = top.text;
-  if (top.url) answer += `\n\n(Source: ${top.url})`;
-  return answer;
+  return top.text;
 }
 
 async function ask(siteId, siteName, question, context, history, preferLocal = false) {
