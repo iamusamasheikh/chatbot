@@ -29,8 +29,8 @@
 
   var css = [
     '.aichat *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}',
-    '.aichat-btn{position:fixed;right:20px;bottom:20px;width:60px;height:60px;border-radius:50%;background:#2563eb;color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(37,99,235,.4);z-index:2147483000;transition:transform .15s}',
-    '.aichat-btn:hover{transform:scale(1.06)}',
+    '.aichat-btn{position:fixed;right:20px;bottom:20px;width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 25px rgba(37,99,235,.45);z-index:2147483000;transition:transform .2s ease,box-shadow .2s ease}',
+    '.aichat-btn:hover{transform:scale(1.08) rotate(-3deg);box-shadow:0 12px 30px rgba(37,99,235,.6)}',
     '.aichat-widget{position:fixed;right:20px;bottom:90px;width:360px;max-width:calc(100vw - 40px);height:520px;max-height:calc(100vh - 120px);background:#fff;border-radius:16px;overflow:hidden;display:none;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,.25);z-index:2147483000}',
     '.aichat-widget.open{display:flex}',
     '.aichat-header{background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px}',
@@ -63,11 +63,14 @@
   style.textContent = css;
   document.head.appendChild(style);
 
+  var iconChat = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><circle cx="9" cy="10" r="1" fill="currentColor"></circle><circle cx="12" cy="10" r="1" fill="currentColor"></circle><circle cx="15" cy="10" r="1" fill="currentColor"></circle></svg>';
+  var iconClose = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+
   /* ---------- DOM ---------- */
   var btn = document.createElement('button');
   btn.className = 'aichat-btn';
   btn.setAttribute('aria-label', 'Open chat');
-  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C6.5 3 2 6.9 2 11.7c0 2.2 1 4.2 2.7 5.7L4 21l3.7-1.6c1.3.4 2.7.6 4.3.6 5.5 0 10-3.9 10-8.7S17.5 3 12 3z"/></svg>';
+  btn.innerHTML = iconChat;
   document.body.appendChild(btn);
 
   var widget = document.createElement('div');
@@ -245,6 +248,7 @@
 
   btn.addEventListener('click', function () {
     var has = widget.classList.toggle('open');
+    btn.innerHTML = has ? iconClose : iconChat;
     if (has) {
       openWs();
       if (!msgsEl.querySelector('.aichat-msg')) {
@@ -253,7 +257,10 @@
       }
     }
   });
-  widget.querySelector('.aichat-close').onclick = function () { widget.classList.remove('open'); };
+  widget.querySelector('.aichat-close').onclick = function () {
+    widget.classList.remove('open');
+    btn.innerHTML = iconChat;
+  };
   sendBtn.onclick = sendMessage;
   inputEl.addEventListener('keydown', function (e) {
     if (e.key === 'Enter') { e.preventDefault(); sendMessage(); }

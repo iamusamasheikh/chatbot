@@ -82,13 +82,19 @@ async function callCloud(messages) {
 
 // Zero-cost local fallback: answer straight from the knowledge base.
 function localAnswer(question, siteId) {
+  const qLower = (question || '').toLowerCase().trim();
+  const greetings = ['hi', 'hello', 'hey', 'salam', 'halo', 'good morning', 'good evening', 'namaste', 'help', 'who are you', 'what can you do'];
+  if (greetings.includes(qLower) || qLower === 'hi!' || qLower === 'hello!') {
+    return 'Hi there! 👋 How can I help you today? Feel free to ask me any question about our website or services!';
+  }
+
   const kb = store.getKnowledge(siteId);
   if (!kb.indexed || !kb.chunks || !(kb.chunkCount || (kb.chunks.docs && kb.chunks.docs.length))) {
-    return 'I currently have no trained knowledge. Please train me by running `npm run train`.';
+    return 'Hi! 👋 I am currently learning about this website. Please ask a specific question or leave your contact info!';
   }
   const hits = indexer.search(kb.chunks, question, 1);
   if (!hits.length) {
-    return 'I could not find that in my knowledge. Please contact our team directly for help.';
+    return 'I could not find that specific detail in my knowledge base. Feel free to leave your contact info or ask to talk to a human agent!';
   }
   const top = hits[0];
   let answer = top.text;
