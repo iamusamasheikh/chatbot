@@ -159,7 +159,10 @@
   function req(path, opts) {
     opts = opts || {};
     opts.credentials = 'same-origin';
-    if (opts.body && typeof opts.body !== 'string') opts.body = JSON.stringify(opts.body);
+    if (opts.body) {
+      opts.headers = Object.assign({ 'Content-Type': 'application/json' }, opts.headers || {});
+      if (typeof opts.body !== 'string') opts.body = JSON.stringify(opts.body);
+    }
     return fetch(path, opts).then(function (r) {
       if (r.status === 401) { location.href = '/login'; throw new Error('unauth'); }
       return r.json();
@@ -205,9 +208,12 @@
     var url = document.getElementById('nsUrl').value.trim();
     if (!name) { alert('Enter a site name'); return; }
     req('/api/my/sites', { method: 'POST', body: { name: name, siteUrl: url } }).then(function (d) {
+      if (d.error) { alert(d.error); return; }
       document.getElementById('nsName').value = ''; document.getElementById('nsUrl').value = '';
       document.getElementById('newSiteBox').style.display = 'none';
       currentSite = d.siteId; loadSites(); loadAll();
+    }).catch(function (e) {
+      alert('Could not save site: ' + e.message);
     });
   });
 
