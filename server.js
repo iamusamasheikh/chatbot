@@ -280,6 +280,23 @@ app.get('/api/my/sites/:siteId/leads/export', requireAuth, requireSiteOwner, (re
   res.send('\uFEFF' + rows.join('\r\n'));
 });
 
+app.get('/api/my/sites/:siteId/verify-embed', requireAuth, requireSiteOwner, async (req, res) => {
+  const site = store.getSite(req.siteId);
+  if (!site || !site.site_url) return res.status(400).json({ active: false, error: 'Set your website URL in Settings first.' });
+  try {
+    const scraper = require('./src/scraper');
+    const page = await scraper.fetchPage(site.site_url);
+    const html = page ? (page.html || '') : '';
+    if (page.error || !html) return res.json({ active: false, message: `Could not reach ${site.site_url} (${page.error || 'no response'})` });
+    const hasWidget = html.toLowerCase().includes('widget.js') || html.toLowerCase().includes('aichatconfig');
+    if (hasWidget) {
+      res.json({ active: true, message: `Widget verified and active on ${site.site_url}! 🎉` });
+    } else {
+      res.json({ active: false, message: `Widget code not detected on ${site.site_url} yet. Make sure it is pasted before </body>.` });
+    }
+  } catch (e) {
+    res.json({ active: false, message: 'Verification failed: ' + e.message });
+  }
 app.get('/api/my/sites/:siteId/train-status', requireAuth, requireSiteOwner, (req, res) => {
   const j = jobs.get(req.siteId);
   res.json(j ? j : { running: false, done: 0, total: 0, page: 0, error: null });

@@ -89,6 +89,10 @@
       <div class="tabcontent" id="tab-embed">
         <div class="card"><h2 style="font-size:15px;margin-bottom:8px">Widget embed code — paste before &lt;/body&gt;</h2>
           <div class="code" id="embedCode"></div>
+          <div style="margin-top:14px" class="row">
+            <button class="btn green" id="btnVerifyEmbed">Verify Installation</button>
+            <span id="embedVerifyStatus" class="empty">Click to verify if the widget code is active on your website.</span>
+          </div>
         </div>
       </div>
 
@@ -288,6 +292,25 @@
       }).join('');
     });
   }
+
+  /* ---- verify embed ---- */
+  document.getElementById('btnVerifyEmbed').addEventListener('click', function () {
+    var info = document.getElementById('embedVerifyStatus');
+    var b = document.getElementById('btnVerifyEmbed');
+    b.disabled = true; b.textContent = 'Verifying…';
+    info.innerHTML = '<span class="empty">Checking website HTML…</span>';
+    req('/api/my/sites/' + currentSite + '/verify-embed').then(function (d) {
+      b.disabled = false; b.textContent = 'Verify Installation';
+      if (d.active) {
+        info.innerHTML = '<span class="badge ok">' + esc(d.message) + '</span>';
+      } else {
+        info.innerHTML = '<span class="badge no">' + esc(d.message || d.error) + '</span>';
+      }
+    }).catch(function (e) {
+      b.disabled = false; b.textContent = 'Verify Installation';
+      info.innerHTML = '<span class="badge no">' + esc(e.message) + '</span>';
+    });
+  });
 
   /* ---- train (async + progress) ---- */
   document.getElementById('btnTrain').addEventListener('click', function () {
