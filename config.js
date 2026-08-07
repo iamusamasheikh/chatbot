@@ -24,7 +24,7 @@ const config = {
     apiKey: process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY || '',
     // OpenRouter (free models) — change to your own provider if needed.
     baseUrl: process.env.LLM_BASE_URL || 'https://openrouter.ai/api/v1',
-    model: process.env.LLM_MODEL || 'poolside/laguna-s-2.1:free',
+    model: process.env.OPENROUTER_MODEL || 'openrouter/auto',
     maxTokens: parseInt(process.env.LLM_MAX_TOKENS || '700', 10),
     temperature: parseFloat(process.env.LLM_TEMPERATURE || '0.4'),
     // Optional custom HTTP headers for OpenRouter (proxied/referral, etc.)
@@ -52,9 +52,12 @@ const config = {
     greeting: process.env.BOT_GREETING || 'Hi there! 👋 How can I help you today?',
     offlineGreeting: process.env.BOT_OFFLINE_GREETING || 'Hi! 👋 Our AI assistant can answer instantly. Need a human? We will reply as soon as possible.',
     systemPrompt: process.env.SYSTEM_PROMPT ||
-      'You are a friendly, highly intelligent, and professional customer-support AI assistant for "{site_name}". ' +
-      'Answer questions clearly, naturally, and warmly. Use the website knowledge context provided below to give precise details when available. ' +
-      'For general questions, greetings, or inquiries not strictly in the knowledge base, be helpful, human-like, and invite the user to leave their contact details or speak to support.'
+      'You are the official customer support AI assistant for "{site_name}".\n' +
+      'Your primary goal is to help visitors with questions about {site_name}, its products, services, and business.\n' +
+      'RULES:\n' +
+      '1. Answer visitor questions accurately and warmly using the website knowledge context provided below.\n' +
+      '2. If a visitor asks off-topic, unrelated, or random questions (such as weather reports, cooking recipes, sports scores, or generic trivia), politely inform them that you are dedicated to helping with {site_name} services and invite them to ask about the business instead.\n' +
+      '3. For warm greetings ("hi", "hello", "salam"), welcome them politely as the AI representative of {site_name} and ask how you can help them today.'
   },
 
   // Training / crawl target. siteId namespaces data per website (multi-site).

@@ -283,22 +283,17 @@ app.get('/api/my/sites/:siteId/verify-embed', requireAuth, requireSiteOwner, asy
   const site = store.getSite(req.siteId);
   if (!site || !site.site_url) return res.status(400).json({ active: false, error: 'Set your website URL in Settings first.' });
   try {
-    const ans = store.getAnalytics(req.siteId);
-    const hasActivity = (ans.sessions > 0 || ans.messages > 0 || ans.liveChats > 0);
     const scraper = require('./src/scraper');
     const page = await scraper.fetchPage(site.site_url);
     const html = page ? (page.html || '') : '';
+    if (page.error || !html) return res.json({ active: false, message: `Could not reach ${site.site_url} (${page.error || 'no HTML'})` });
     const hasWidget = html.toLowerCase().includes('widget.js') || html.toLowerCase().includes('aichatconfig') || html.toLowerCase().includes('aichat');
-    if (hasWidget || hasActivity) {
+    if (hasWidget) {
       res.json({ active: true, message: `Widget verified and active on ${site.site_url}! 🎉` });
     } else {
-      res.json({ active: false, message: `Widget code not detected on ${site.site_url} yet. Make sure it is pasted before </body>.` });
+      res.json({ active: false, message: `Widget code snippet not detected in the HTML of ${site.site_url}. Make sure it is pasted before </body>.` });
     }
   } catch (e) {
-    const ans = store.getAnalytics(req.siteId);
-    if (ans && (ans.sessions > 0 || ans.messages > 0)) {
-      return res.json({ active: true, message: `Widget active on ${site.site_url}! 🎉` });
-    }
     res.json({ active: false, message: 'Verification check failed: ' + e.message });
   }
 });
