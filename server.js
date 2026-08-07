@@ -297,6 +297,8 @@ app.get('/api/my/sites/:siteId/verify-embed', requireAuth, requireSiteOwner, asy
   } catch (e) {
     res.json({ active: false, message: 'Verification failed: ' + e.message });
   }
+});
+
 app.get('/api/my/sites/:siteId/train-status', requireAuth, requireSiteOwner, (req, res) => {
   const j = jobs.get(req.siteId);
   res.json(j ? j : { running: false, done: 0, total: 0, page: 0, error: null });
