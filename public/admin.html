@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Super Admin · AI Chat</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,Segoe UI,Roboto,sans-serif}
+  body{background:#f5f6fa;color:#111;font-size:14px}
+  header{background:#111827;color:#fff;padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
+  .wrap{max-width:1000px;margin:24px auto;padding:0 16px}
+  .panel{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:16px}
+  .panel h2{font-size:15px;margin-bottom:12px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:8px;border-bottom:1px solid #eee}
+  th{color:#6b7280;font-weight:600}
+  .badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600}
+  .ok{background:#d1fae5;color:#065f46}.no{background:#fee2e2;color:#991b1b}.warn{background:#fef3c7;color:#92400e}
+  a{color:#2563eb}
+</style>
+</head>
+<body>
+<header>
+  <span>🛡️ Super Admin · AI Chat</span>
+  <div>
+    <a href="/dashboard" style="color:#fff;margin-right:12px">My dashboard</a>
+    <button id="logout" style="background:none;border:1px solid #666;color:#fff;border-radius:6px;padding:5px 10px;cursor:pointer">Logout</button>
+  </div>
+</header>
+<div class="wrap">
+  <div class="panel">
+    <h2>👥 Users</h2>
+    <div id="usersBox">Loading…</div>
+  </div>
+  <div class="panel">
+    <h2>🌐 All sites</h2>
+    <div id="sitesBox">Loading…</div>
+  </div>
+</div>
+
+<script>
+(function () {
+  function auth(r) { if (r.status === 401) location.href = '/login'; return r.json(); }
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+
+  fetch('/api/admin/users', { credentials: 'same-origin' }).then(auth).then(function (users) {
+    document.getElementById('usersBox').innerHTML =
+      '<table><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Sites</th><th>Created</th></tr>' +
+      users.map(function (u) {
+        return '<tr><td>' + u.id + '</td><td>' + esc(u.name) + '</td><td>' + esc(u.email) + '</td>' +
+          '<td>' + (u.role === 'admin' ? '<span class="badge ok">admin</span>' : '<span class="badge warn">user</span>') + '</td>' +
+          '<td>' + u.sites + '</td><td>' + new Date(u.created).toLocaleString() + '</td></tr>';
+      }).join('') + '</table>';
+  });
+
+  fetch('/api/admin/sites', { credentials: 'same-origin' }).then(auth).then(function (sites) {
+    document.getElementById('sitesBox').innerHTML =
+      '<table><tr><th>Site</th><th>Name</th><th>Owner</th><th>KB</th><th>Sessions</th><th>Leads</th></tr>' +
+      sites.map(function (s) {
+        return '<tr><td>' + esc(s.id) + '</td><td>' + esc(s.name) + '</td><td>' + (s.ownerId || '—') + '</td>' +
+          '<td>' + (s.trained ? '<span class="badge ok">' + s.chunks + ' chunks</span>' : '<span class="badge no">untrained</span>') + '</td>' +
+          '<td>' + s.sessions + '</td><td>' + s.leads + '</td></tr>';
+      }).join('') + '</table>';
+  });
+
+  document.getElementById('logout').addEventListener('click', function () {
+    fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }).then(function () { location.href = '/login'; });
+  });
+})();
+</script>
+</body>
+</html>

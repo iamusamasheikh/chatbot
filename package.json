@@ -1,0 +1,22 @@
+{
+  "name": "aichat-widget",
+  "version": "1.0.0",
+  "description": "Tidio-style AI chatbot widget with RAG knowledge base, live chat, leads and analytics. Works on WordPress and any custom website.",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "train": "node scripts/train.js",
+    "train:watch": "node scripts/train.js --watch"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "ws": "^8.17.0"
+  }
+}

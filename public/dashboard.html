@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard · AI Chat</title>
+<style>
+  :root{--blue:#2563eb;--violet:#7c3aed;--bg:#f5f6fa;--card:#fff;--line:#e5e7eb;--muted:#6b7280}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,Segoe UI,Roboto,sans-serif}
+  body{background:var(--bg);color:#111}
+  header{background:#111827;color:#fff;padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between}
+  header b{font-size:17px}
+  .me{display:flex;align-items:center;gap:12px}
+  .me .uname{font-size:13px;opacity:.9}
+  .btn{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;font-weight:600}
+  .btn.green{background:#10b981}.btn.ghost{background:transparent;color:var(--blue);border:1px solid var(--blue)}
+  .btn.small{padding:5px 10px;font-size:12px}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .layout{display:flex;min-height:calc(100vh - 60px)}
+  aside{width:250px;background:var(--card);border-right:1px solid var(--line);padding:16px;flex-shrink:0}
+  aside h3{font-size:12px;color:var(--muted);text-transform:uppercase;margin:14px 0 8px}
+  .site{padding:10px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px;cursor:pointer;font-size:13px}
+  .site.active{border-color:var(--blue);background:#eef2ff}
+  .site .sname{font-weight:600}
+  .site .sid{color:var(--muted);font-size:11px}
+  .newsite{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+  input,select{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:13px;outline:none}
+  input:focus,select:focus{border-color:var(--blue)}
+  main{flex:1;padding:24px;overflow:auto}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
+  .tab{padding:8px 14px;border-radius:20px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:var(--muted)}
+  .tab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:16px}
+  .num{font-size:24px;font-weight:700;color:var(--blue)}
+  .lbl{font-size:11px;color:var(--muted)}
+  .code{background:#111827;color:#34d399;padding:12px;border-radius:8px;font-size:12px;white-space:pre-wrap;word-break:break-all;font-family:Consolas,monospace}
+  .badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600}
+  .ok{background:#d1fae5;color:#065f46}.no{background:#fee2e2;color:#991b1b}
+  .msg{margin:6px 0;padding:8px 10px;border-radius:8px;font-size:13px;background:#f3f4f6}
+  .msg.user{background:#dbeafe}.msg.agent{background:#d1fae5;color:#065f46}.msg.sys{background:#fef3c7;color:#92400e}
+  .msg .meta{font-size:11px;color:var(--muted)}
+  .empty{color:var(--muted);font-size:12px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .hidden{display:none}
+  .tabcontent{display:none}.tabcontent.active{display:block}
+</style>
+</head>
+<body>
+<header>
+  <span>🤖 AI Chat — Dashboard</span>
+  <div class="me">
+    <span class="uname" id="uname"></span>
+    <button class="btn small ghost" id="logout">Logout</button>
+  </div>
+</header>
+
+<div class="layout">
+  <aside>
+    <button class="btn green" style="width:100%" id="createSite">+ New site</button>
+    <div class="newsite" id="newSiteBox" style="display:none">
+      <input type="text" id="nsName" placeholder="Site name (e.g. My Shop)">
+      <input type="url" id="nsUrl" placeholder="https://your-site.com">
+      <button class="btn small" id="nsSave">Save site</button>
+    </div>
+    <h3>Your websites</h3>
+    <div id="siteList"></div>
+  </aside>
+
+  <main>
+    <div id="noSite" class="card" style="display:none">Select or create a website to manage its chatbot.</div>
+
+    <div id="workspace" style="display:none">
+      <div class="tabs" id="tabs">
+        <button class="tab active" data-tab="overview">Overview</button>
+        <button class="tab" data-tab="embed">Embed</button>
+        <button class="tab" data-tab="train">Train</button>
+        <button class="tab" data-tab="live">Live chat</button>
+        <button class="tab" data-tab="conversations">Conversations</button>
+        <button class="tab" data-tab="leads">Leads</button>
+        <button class="tab" data-tab="settings">Settings</button>
+      </div>
+
+      <div class="tabcontent active" id="tab-overview">
+        <div class="cards" id="ovCards"></div>
+        <div class="card"><h2 style="font-size:15px;margin-bottom:8px">Knowledge base <span id="ovKbState"></span></h2><div id="ovKbInfo" class="empty"></div></div>
+      </div>
+
+      <div class="tabcontent" id="tab-embed">
+        <div class="card"><h2 style="font-size:15px;margin-bottom:8px">Widget embed code — paste before &lt;/body&gt;</h2>
+          <div class="code" id="embedCode"></div>
+        </div>
+      </div>
+
+      <div class="tabcontent" id="tab-train">
+        <div class="card">
+          <h2 style="font-size:15px;margin-bottom:8px">Train the bot on your website</h2>
+          <div class="row"><input type="url" id="trainUrl" placeholder="https://your-site.com">
+          <button class="btn green" id="btnTrain">Train</button></div>
+          <div class="empty" id="trainInfo" style="margin-top:8px"></div>
+        </div>
+      </div>
+
+      <div class="tabcontent" id="tab-live">
+        <div class="card">
+          <h2 style="font-size:15px;margin-bottom:8px">Live chat (human agent)</h2>
+          <div class="row"><input type="text" id="agentId" placeholder="Your name">
+          <button class="btn" id="goOnline">Go online</button>
+          <span id="agentStatus" class="empty"></span></div>
+          <div id="liveBox" style="margin-top:12px"><div class="empty">When a visitor requests a human, it appears here.</div></div>
+          <div class="row" style="margin-top:12px">
+            <select id="liveSession"><option value="">Select session…</option></select>
+            <input type="text" id="agentReply" placeholder="Type reply..." style="flex:2">
+            <button class="btn green" id="sendReply">Send</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tabcontent" id="tab-conversations">
+        <div class="card"><h2 style="font-size:15px;margin-bottom:8px">Recent conversations</h2><div id="convBox"><div class="empty">Loading…</div></div></div>
+      </div>
+
+      <div class="tabcontent" id="tab-leads">
+        <div class="card"><h2 style="font-size:15px;margin-bottom:8px">Leads <a class="btn small" id="exportCsv" style="float:right">Export CSV</a></h2><div id="leadsBox"><div class="empty">Loading…</div></div></div>
+      </div>
+
+      <div class="tabcontent" id="tab-settings">
+        <div class="card">
+          <h2 style="font-size:15px;margin-bottom:8px">Chatbot settings</h2>
+          <label style="font-size:12px;color:#374151;margin:10px 0 4px;display:block">Site name</label>
+          <input type="text" id="stName" placeholder="My Shop">
+          <label style="font-size:12px;color:#374151;margin:10px 0 4px;display:block">Website URL (used to allow only this domain)</label>
+          <input type="url" id="stUrl" placeholder="https://myshop.com">
+          <label style="font-size:12px;color:#374151;margin:10px 0 4px;display:block">Greeting message</label>
+          <input type="text" id="stGreeting" placeholder="Hi! How can I help?">
+          <div class="row" style="margin-top:12px">
+            <div style="font-size:13px">Theme color</div><input type="color" id="stColor" value="#2563eb" style="width:60px;padding:0">
+            <span style="flex:1"></span>
+          </div>
+          <label style="font-size:12px;color:#374151;margin:14px 0 4px;display:block">Lead webhook URL (optional — POSTs new leads here)</label>
+          <input type="url" id="stWebhook" placeholder="https://yoursite.com/webhook">
+          <button class="btn green" id="stSave" style="margin-top:14px">Save settings</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  var currentSite = null;
+  var sitesCache = [];
+  var live = {};
+  var ws = null;
+  var wsToken = '';
+
+  function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+
+  function req(path, opts) {
+    opts = opts || {};
+    opts.credentials = 'same-origin';
+    if (opts.body && typeof opts.body !== 'string') opts.body = JSON.stringify(opts.body);
+    return fetch(path, opts).then(function (r) {
+      if (r.status === 401) { location.href = '/login'; throw new Error('unauth'); }
+      return r.json();
+    });
+  }
+
+  /* ---- auth ---- */
+  req('/api/auth/me').then(function (d) {
+    document.getElementById('uname').textContent = d.user.name + ' · ' + d.user.email + (d.user.role === 'admin' ? ' (admin)' : '');
+  });
+  document.getElementById('logout').addEventListener('click', function () {
+    fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }).then(function () { location.href = '/login'; });
+  });
+
+  /* ---- sites ---- */
+  function loadSites() {
+    req('/api/my/sites').then(function (sites) {
+      var box = document.getElementById('siteList');
+      box.innerHTML = sites.map(function (s) {
+        return '<div class="site ' + (currentSite === s.id ? 'active' : '') + '" data-id="' + esc(s.id) + '">' +
+          '<div class="sname">' + esc(s.name) + '</div><div class="sid">' + esc(s.id) + ' · ' + (s.trained ? 'trained' : 'untrained') + '</div></div>';
+      }).join('');
+      Array.prototype.forEach.call(box.querySelectorAll('.site'), function (el) {
+        el.addEventListener('click', function () { currentSite = el.getAttribute('data-id'); loadSites(); loadAll(); });
+      });
+      if (!currentSite && sites.length) { currentSite = sites[0].id; loadSites(); loadAll(); }
+      document.getElementById('noSite').style.display = sites.length ? 'none' : 'block';
+      document.getElementById('workspace').style.display = sites.length ? 'block' : 'none';
+    });
+  }
+
+  document.getElementById('createSite').addEventListener('click', function () {
+    document.getElementById('newSiteBox').style.display = document.getElementById('newSiteBox').style.display === 'none' ? 'flex' : 'none';
+  });
+  document.getElementById('nsSave').addEventListener('click', function () {
+    var name = document.getElementById('nsName').value.trim();
+    var url = document.getElementById('nsUrl').value.trim();
+    if (!name) { alert('Enter a site name'); return; }
+    req('/api/my/sites', { method: 'POST', body: { name: name, siteUrl: url } }).then(function (d) {
+      document.getElementById('nsName').value = ''; document.getElementById('nsUrl').value = '';
+      currentSite = d.siteId; loadSites(); loadAll();
+    });
+  });
+
+  /* ---- tabs ---- */
+  var tabBtns = document.querySelectorAll('#tabs .tab');
+  Array.prototype.forEach.call(tabBtns, function (b) {
+    b.addEventListener('click', function () {
+      Array.prototype.forEach.call(tabBtns, function (x) { x.classList.remove('active'); });
+      b.classList.add('active');
+      var id = 'tab-' + b.getAttribute('data-tab');
+      Array.prototype.forEach.call(document.querySelectorAll('.tabcontent'), function (x) { x.classList.remove('active'); });
+      document.getElementById(id).classList.add('active');
+      if (b.getAttribute('data-tab') === 'live') connectAgent();
+    });
+  });
+
+  /* ---- load per-site data ---- */
+  function loadAll() {
+    if (!currentSite) return;
+    req('/api/my/sites/' + currentSite + '/summary').then(function (d) {
+      document.getElementById('ovCards').innerHTML =
+        '<div class="card"><div class="num">' + d.analytics.sessions + '</div><div class="lbl">Sessions</div></div>' +
+        '<div class="card"><div class="num">' + d.analytics.messages + '</div><div class="lbl">Messages</div></div>' +
+        '<div class="card"><div class="num">' + d.analytics.liveChats + '</div><div class="lbl">Live chats</div></div>' +
+        '<div class="card"><div class="num">' + d.leads + '</div><div class="lbl">Leads</div></div>' +
+        '<div class="card"><div class="num">' + d.kb.chunks + '</div><div class="lbl">Knowledge chunks</div></div>';
+      var st = document.getElementById('ovKbState');
+      if (d.kb.indexed) st.innerHTML = ' <span class="badge ok">Trained</span> ' + d.kb.chunks + ' chunks';
+      else st.innerHTML = ' <span class="badge no">Not trained</span>';
+      document.getElementById('ovKbInfo').textContent = d.kb.siteUrl ? (d.kb.siteName + ' — ' + d.kb.siteUrl) : 'Train the bot so it can answer about your site.';
+      document.getElementById('embedCode').textContent =
+        '<script>\n  window.AIChatConfig = {\n' +
+        '    url: "' + location.origin + '",\n' +
+        '    siteId: "' + currentSite + '",\n' +
+        '    title: "Support",\n' +
+        '    greeting: "Hi! How can I help?"\n' +
+        '  };\n</script>\n' +
+        '<script src="' + location.origin + '/widget.js" defer></script>';
+      document.getElementById('trainInfo').textContent = d.kb.indexed ? ('Last trained: ' + new Date(d.kb.trainedAt).toLocaleString()) : 'Not trained yet. Enter your website URL.';
+      // settings
+      document.getElementById('stName').value = d.siteName || '';
+      document.getElementById('stUrl').value = d.siteUrl || '';
+      document.getElementById('stGreeting').value = d.greeting || '';
+      document.getElementById('stColor').value = d.themeColor || '#2563eb';
+      document.getElementById('stWebhook').value = d.webhookUrl || '';
+      document.getElementById('exportCsv').href = '/api/my/sites/' + currentSite + '/leads/export';
+    });
+    loadChats();
+    loadLeads();
+  }
+
+  function loadChats() {
+    req('/api/my/sites/' + currentSite + '/chats').then(function (d) {
+      var box = document.getElementById('convBox');
+      var convs = d.conversations || {};
+      var keys = Object.keys(convs).reverse().slice(0, 8);
+      if (!keys.length) { box.innerHTML = '<div class="empty">No conversations yet.</div>'; return; }
+      box.innerHTML = keys.map(function (sid) {
+        var c = convs[sid], msgs = c.messages || [];
+        return '<div style="font-size:12px;margin:10px 0 4px"><b>' + esc(sid) + '</b> <span style="color:#999">· ' + msgs.length + ' msgs · ' + new Date(c.startedAt).toLocaleString() + '</span></div>' +
+          msgs.slice(-3).map(function (m) { return '<div class="msg ' + (m.sender === 'user' ? 'user' : 'author') + '"><span class="meta">' + esc(m.sender) + ':</span> ' + esc(String(m.text).slice(0, 90)) + '</div>'; }).join('');
+      }).join('');
+    });
+  }
+  function loadLeads() {
+    req('/api/my/sites/' + currentSite + '/leads').then(function (d) {
+      var box = document.getElementById('leadsBox');
+      var ls = d.leads || [];
+      if (!ls.length) { box.innerHTML = '<div class="empty">No leads yet.</div>'; return; }
+      box.innerHTML = ls.slice(0, 12).map(function (l) {
+        return '<div class="msg"><b>' + esc(l.name) + '</b> <a href="mailto:' + esc(l.email) + '" style="color:#2563eb">' + esc(l.email) + '</a>' + (l.phone ? ' · ' + esc(l.phone) : '') + '<div class="meta">' + new Date(l.at).toLocaleString() + '</div></div>';
+      }).join('');
+    });
+  }
+
+  /* ---- train (async + progress) ---- */
+  document.getElementById('btnTrain').addEventListener('click', function () {
+    var url = document.getElementById('trainUrl').value.trim();
+    if (!url) { alert('Enter your website URL'); return; }
+    var b = document.getElementById('btnTrain');
+    b.disabled = true; b.textContent = 'Training…';
+    req('/api/train', { method: 'POST', body: { siteId: currentSite, url: url } }).then(function (d) {
+      if (d.started) pollTrain();
+      else { b.disabled = false; b.textContent = 'Train'; alert(d.error || 'Error'); }
+    });
+  });
+  function pollTrain() {
+    var b = document.getElementById('btnTrain');
+    var info = document.getElementById('trainInfo');
+    var timer = setInterval(function () {
+      req('/api/my/sites/' + currentSite + '/train-status').then(function (j) {
+        if (!j.running) {
+          clearInterval(timer); b.disabled = false; b.textContent = 'Train';
+          if (j.error) { info.textContent = 'Training failed: ' + j.error; }
+          else { loadAll(); info.textContent = 'Training done ✓ ' + j.total + ' pages indexed.'; }
+        } else {
+          info.textContent = 'Crawling… ' + j.done + ' pages fetched';
+        }
+      });
+    }, 1500);
+  }
+
+  document.getElementById('stSave').addEventListener('click', function () {
+    var body = {
+      name: document.getElementById('stName').value.trim(),
+      siteUrl: document.getElementById('stUrl').value.trim(),
+      greeting: document.getElementById('stGreeting').value.trim(),
+      themeColor: document.getElementById('stColor').value,
+      webhookUrl: document.getElementById('stWebhook').value.trim()
+    };
+    req('/api/my/sites/' + currentSite, { method: 'POST', body: body }).then(function (d) {
+      if (d.ok) { loadSites(); loadAll(); alert('Saved'); }
+    });
+  });
+
+  /* ---- sound (agent alert) ---- */
+  function beep() {
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      var ctx = new AC();
+      var o = ctx.createOscillator(), g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value = 880; o.type = 'sine';
+      g.gain.setValueAtTime(0.3, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      o.start(); o.stop(ctx.currentTime + 0.3);
+    } catch (e) {}
+  }
+
+  /* ---- live chat agent ---- */
+  function connectAgent() {
+    if (ws && (ws.readyState === 0 || ws.readyState === 1)) ws.close();
+    req('/api/auth/token').then(function (d) {
+      wsToken = d.token;
+      var wu = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws?token=' + wsToken;
+      ws = new WebSocket(wu);
+      ws.onopen = function () {
+        var agentId = document.getElementById('agentId').value.trim() || document.getElementById('uname').textContent.split(' (')[0];
+        ws.send(JSON.stringify({ type: 'agent-hello', siteId: currentSite, agentId: agentId }));
+        document.getElementById('agentStatus').innerHTML = '<span class="badge ok">● Online</span>';
+      };
+      ws.onmessage = function (ev) {
+        var m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+        if (m.type === 'error') { document.getElementById('agentStatus').innerHTML = '<span class="badge no">' + esc(m.message) + '</span>'; }
+        else if (m.type === 'initial-messages' && m.siteId === currentSite) {
+          (m.conversations || []).forEach(function (c) {
+            (c.messages || []).forEach(function (msg) {
+              var who = msg.sender === 'user' ? 'user' : msg.sender === 'agent' ? 'author' : 'sys';
+              addLive(c.sessionId, c.name, msg.text, who);
+            });
+          });
+          renderLive();
+        } else if (m.type === 'user-msg' && m.siteId === currentSite) { addLive(m.sessionId, m.name, m.text, 'user'); beep(); }
+        else if (m.type === 'agent-joined' && m.siteId === currentSite) { addLive(m.sessionId, m.name || 'Visitor', '* requested human support *', 'sys'); beep(); }
+      };
+      ws.onclose = function () { document.getElementById('agentStatus').innerHTML = '<span class="badge no">Offline</span>'; };
+    });
+  }
+  function addLive(id, name, text, who) {
+    if (!id) return;
+    if (!live[id]) live[id] = [];
+    live[id].push({ who: who, name: name || 'Visitor', text: text, at: new Date().toLocaleTimeString() });
+    var sel = document.getElementById('liveSession');
+    var exists = false;
+    for (var i = 0; i < sel.options.length; i++) if (sel.options[i].value === id) exists = true;
+    if (!exists) { var o = document.createElement('option'); o.value = id; o.textContent = (name || 'Visitor') + ' · ' + id; sel.appendChild(o); }
+    renderLive();
+  }
+  function renderLive() {
+    var box = document.getElementById('liveBox');
+    var ids = Object.keys(live);
+    if (!ids.length) { box.innerHTML = '<div class="empty">When a visitor requests a human, it appears here.</div>'; return; }
+    box.innerHTML = ids.map(function (id) {
+      var rows = live[id];
+      return '<div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:10px;margin-bottom:8px"><b>' + esc(rows[0].name) + '</b> <span style="color:#999">· ' + esc(id) + '</span>' +
+        rows.map(function (r) { return '<div class="msg ' + (r.who === 'user' ? 'user' : r.who === 'sys' ? 'sys' : 'author') + '"><span class="meta">' + r.at + ':</span> ' + esc(r.text) + '</div>'; }).join('') + '</div>';
+    }).join('');
+  }
+  document.getElementById('sendReply').addEventListener('click', function () {
+    var id = document.getElementById('liveSession').value;
+    var text = document.getElementById('agentReply').value.trim();
+    if (!id || !text) return;
+    if (ws && ws.readyState === 1) {
+      ws.send(JSON.stringify({ type: 'agent-msg', sessionId: id, siteId: currentSite, text: text }));
+      addLive(id, 'You', text, 'author');
+      document.getElementById('agentReply').value = '';
+    } else alert('Go online as an agent first.');
+  });
+
+  loadSites();
+})();
+</script>
+</body>
+</html>

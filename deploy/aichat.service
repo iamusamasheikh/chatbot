@@ -1,0 +1,26 @@
+# AI Chat SaaS — systemd service (runs 24/7, auto-restarts on crash/reboot)
+# Install:  sudo cp deploy/aichat.service /etc/systemd/system/aichat.service
+# Config:   sudo cp deploy/aichat.conf /etc/aichat.conf   then edit
+# Enable:   sudo systemctl daemon-reload && sudo systemctl enable --now aichat
+# Logs:     sudo journalctl -u aichat -f
+
+[Unit]
+Description=AI Chat SaaS (Node.js)
+After=network.target
+
+[Service]
+Type=simple
+# Change User to your server username if you are not 'ubuntu'
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/aichat
+EnvironmentFile=/etc/aichat.conf
+ExecStart=/usr/bin/env node server.js
+Restart=always
+RestartSec=5
+# Basic hardening
+NoNewPrivileges=true
+TimeoutStopSec=10
+
+[Install]
+WantedBy=multi-user.target
