@@ -78,7 +78,8 @@
     var body = { email: emailVal, password: passVal };
     if (mode === 'signup') body.name = nameVal || emailVal.split('@')[0];
     submit.disabled = true; submit.textContent = 'Please wait…';
-    fetch('/api/auth/' + mode, {
+    var endpoint = mode === 'signup' ? 'register' : 'login';
+    fetch('/api/auth/' + endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',

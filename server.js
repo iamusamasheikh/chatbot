@@ -156,7 +156,7 @@ app.get('/widget.js', (req, res) => res.sendFile(path.join(__dirname, 'public', 
 app.get('/widget.css', (req, res) => res.sendFile(path.join(__dirname, 'public', 'widget.css')));
 
 /* ================= AUTH ================= */
-app.post('/api/auth/register', (req, res) => {
+app.post(['/api/auth/register', '/api/auth/signup'], (req, res) => {
   const { email, password, name } = req.body || {};
   if (!email || !password) return res.status(400).json({ error: 'email and password required' });
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return res.status(400).json({ error: 'invalid email' });
