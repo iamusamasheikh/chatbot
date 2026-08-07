@@ -231,11 +231,13 @@
     ws.onopen = function () {
       ws.send(JSON.stringify({ type: 'client-hello', sessionId: sessionId, siteId: siteId }));
     };
+    var lastBotText = '';
     ws.onmessage = function (ev) {
       var msg;
       try { msg = JSON.parse(ev.data); } catch (e) { return; }
-      if (msg.type === 'bot-msg') addMsg(msg.text, 'bot');
-      else if (msg.type === 'agent-msg') {
+      if (msg.type === 'bot-msg') {
+        if (msg.text !== lastBotText) { lastBotText = msg.text; addMsg(msg.text, 'bot'); }
+      } else if (msg.type === 'agent-msg') {
         if (!humanOnline) { humanOnline = true; setHumanStatus(); }
         addMsg(msg.text, 'agent');
       }

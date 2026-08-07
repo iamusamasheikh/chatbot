@@ -210,7 +210,6 @@ app.post('/api/chat', requireSiteExists, verifyOrigin, rateLimit, async (req, re
   const { answer, mode } = await llm.ask(S, kb.siteName, message, context, history);
   store.persistMessage(S, sid, message, 'user');
   store.persistMessage(S, sid, answer, 'bot', mode);
-  hub.postBotReply(S, sid, answer, mode);
   res.json({ reply: answer, mode, sessionId: sid, siteId: S, knowledge: context.length ? 'found' : 'empty' });
 });
 
