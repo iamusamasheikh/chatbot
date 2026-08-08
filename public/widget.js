@@ -97,9 +97,7 @@
     '<div class="aichat-lead">' +
       '<input type="text" class="lead-name" placeholder="Your name *">' +
       '<input type="email" class="lead-email" placeholder="Your email *">' +
-      '<button class="lead-save">Get in touch</button>' +
-    '</div>' +
-    '<div class="aichat-powered">AI ChatBot</div>';
+      '<div class="aichat-powered">POWERED BY <a href="https://usamasheikh.com" target="_blank" style="color:#6b7280;text-decoration:none;font-weight:600">⚡ Usama Sheikh AI</a></div>';
 
   function mount() {
     if (!document.body) {
@@ -295,14 +293,18 @@
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Site-Id': siteId },
       body: JSON.stringify({ sessionId: sessionId, siteId: siteId, message: text })
-    }).then(function (r) { return r.json(); }).then(function (data) {
+    }).then(function (r) {
+      if (!r.ok) throw new Error('status_' + r.status);
+      return r.json();
+    }).then(function (data) {
       typing.remove();
       sendBtn.disabled = false;
       if (data.reply) addMsg(data.reply, 'bot');
+      else addMsg('We offer full digital & web services! How can we help you with your project today?', 'bot');
     }).catch(function () {
       typing.remove();
       sendBtn.disabled = false;
-      addMsg('Sorry, I could not connect. Please try again later.', 'bot');
+      addMsg('We offer complete web design, development, and SEO services! Feel free to leave your email or click "Talk to a human" to connect with our team.', 'bot');
     });
   }
 

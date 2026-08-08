@@ -115,7 +115,7 @@ function rateLimit(req, res, next) {
   let b = rateBuckets.get(key);
   if (!b || now > b.reset) { b = { count: 0, reset: now + 60000 }; rateBuckets.set(key, b); }
   b.count++;
-  if (b.count > 40) return res.status(429).json({ error: 'Too many requests. Please slow down.' });
+  if (b.count > 150) return res.status(429).json({ error: 'Too many requests. Please slow down.' });
   next();
 }
 
