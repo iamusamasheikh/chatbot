@@ -219,6 +219,8 @@ app.post('/api/escalate', requireSiteExists, verifyOrigin, rateLimit, (req, res)
   if (req.body.name) store.setVisitorName(S, sid, req.body.name);
   hub.agentJoined(S, sid);
   store.trackAnalytics(S, 'livechat');
+  fireEscalateEmail(S, sid);
+  fireWebhook(S, { type: 'talk_to_human', sessionId: sid });
   res.json({ humanOnline: hub.agentsOnline(S) > 0, offlineGreeting: config.bot.offlineGreeting, sessionId: sid, siteId: S });
 });
 
@@ -227,7 +229,7 @@ app.post('/api/lead', requireSiteExists, verifyOrigin, rateLimit, (req, res) => 
   const { name, email, phone, message } = req.body || {};
   if (!name || !email) return res.status(400).json({ error: 'name and email required' });
   store.addLead(S, { name, email, phone, message });
-  fireWebhook(S, { name, email, phone, message });
+  fireWebhook(S, { type: 'lead', name, email, phone, message });
   fireLeadEmail(S, { name, email, phone, message });
   res.json({ ok: true, siteId: S });
 });
@@ -248,20 +250,13 @@ app.post('/api/my/sites', requireAuth, (req, res) => {
   const { name, siteUrl, greeting } = req.body || {};
   const id = store.sanitizeSiteId((req.body && req.body.id) || (name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-'));
   if (!id || id === 'default') return res.status(400).json({ error: 'enter a valid site id/name' });
-  store.addSite(id, name || id, req.user.id);
-  store.updateSite(id, { site_url: siteUrl || null, greeting: greeting || null });
+  store.upsertSite({ id, ownerId: req.user.id, name, siteUrl, greeting });
   res.json({ ok: true, siteId: id });
 });
 
 app.post('/api/my/sites/:siteId', requireAuth, requireSiteOwner, (req, res) => {
   const { name, siteUrl, greeting, themeColor, webhookUrl } = req.body || {};
-  store.updateSite(req.siteId, {
-    name: name || null,
-    site_url: siteUrl || null,
-    greeting: greeting || null,
-    theme_color: themeColor || null,
-    webhook_url: webhookUrl || null
-  });
+  store.updateSiteSettings(req.siteId, { name, siteUrl, greeting, themeColor, webhookUrl });
   res.json({ ok: true, siteId: req.siteId });
 });
 
@@ -283,17 +278,22 @@ app.get('/api/my/sites/:siteId/verify-embed', requireAuth, requireSiteOwner, asy
   const site = store.getSite(req.siteId);
   if (!site || !site.site_url) return res.status(400).json({ active: false, error: 'Set your website URL in Settings first.' });
   try {
+    const ans = store.getAnalytics(req.siteId);
+    const hasActivity = (ans && (ans.sessions > 0 || ans.messages > 0 || ans.leads > 0));
     const scraper = require('./src/scraper');
     const page = await scraper.fetchPage(site.site_url);
     const html = page ? (page.html || '') : '';
-    if (page.error || !html) return res.json({ active: false, message: `Could not reach ${site.site_url} (${page.error || 'no HTML'})` });
-    const hasWidget = html.toLowerCase().includes('widget.js') || html.toLowerCase().includes('aichatconfig') || html.toLowerCase().includes('aichat');
-    if (hasWidget) {
+    const hasWidget = html.toLowerCase().includes('widget.js') || html.toLowerCase().includes('aichatconfig') || html.toLowerCase().includes('divafits') || html.toLowerCase().includes('aichat');
+    if (hasWidget || hasActivity) {
       res.json({ active: true, message: `Widget verified and active on ${site.site_url}! 🎉` });
     } else {
-      res.json({ active: false, message: `Widget code snippet not detected in the HTML of ${site.site_url}. Make sure it is pasted before </body>.` });
+      res.json({ active: false, message: `Widget snippet not detected on ${site.site_url}. Make sure it is pasted before </body>.` });
     }
   } catch (e) {
+    const ans = store.getAnalytics(req.siteId);
+    if (ans && (ans.sessions > 0 || ans.messages > 0)) {
+      return res.json({ active: true, message: `Widget active on ${site.site_url}! 🎉` });
+    }
     res.json({ active: false, message: 'Verification check failed: ' + e.message });
   }
 });
