@@ -325,8 +325,27 @@ app.get('/api/admin/sites', requireAuth, requireAdmin, (req, res) => {
 });
 
 /* ---------- helpers ---------- */
-function sendHtmlEmail(to, subject, htmlBody, textBody) {
-  // 1. Resend HTTP Mail API support (Zero Port 25 / ISP firewall restrictions!)
+function sendHtmlEmail(to, subject, htmlBody, textBody, leadData) {
+  // Option A: External PHP Mailer Script (invokes PHP mail() on client's web server!)
+  const phpUrl = process.env.PHP_MAILER_URL;
+  if (phpUrl) {
+    const params = new URLSearchParams();
+    params.append('name', (leadData && leadData.name) || 'Website Visitor');
+    params.append('email', (leadData && leadData.email) || to);
+    params.append('subject', subject);
+    params.append('message', textBody || subject);
+    params.append('to', to);
+
+    fetch(phpUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString()
+    }).then((r) => r.text()).then((d) => console.log('[php-mailer] Triggered PHP script response:', d))
+      .catch((e) => console.warn('[php-mailer] Error calling PHP script:', e.message));
+    return;
+  }
+
+  // Option B: Resend HTTP Mail API support
   const resendKey = process.env.RESEND_API_KEY;
   if (resendKey) {
     fetch('https://api.resend.com/emails', {
@@ -347,7 +366,7 @@ function sendHtmlEmail(to, subject, htmlBody, textBody) {
     return;
   }
 
-  // 2. Nodemailer SMTP or Sendmail
+  // Option C: Nodemailer SMTP or Sendmail
   let nodemailer;
   try { nodemailer = require('nodemailer'); } catch { console.warn('[mail] nodemailer not installed'); return; }
 
