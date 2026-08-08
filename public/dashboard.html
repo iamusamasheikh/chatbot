@@ -3,151 +3,208 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Dashboard · AI Chat</title>
+<title>Dashboard · Usama Sheikh AI</title>
 <style>
-  :root{--blue:#2563eb;--violet:#7c3aed;--bg:#f5f6fa;--card:#fff;--line:#e5e7eb;--muted:#6b7280}
-  *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,Segoe UI,Roboto,sans-serif}
-  body{background:var(--bg);color:#111}
-  header{background:#111827;color:#fff;padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between}
-  header b{font-size:17px}
+  :root{--sidebar-bg:#0f172a;--sidebar-hover:#1e293b;--sidebar-active:#2563eb;--blue:#2563eb;--violet:#7c3aed;--bg:#f8fafc;--card:#ffffff;--line:#e2e8f0;--muted:#64748b}
+  *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif}
+  body{background:var(--bg);color:#0f172a;display:flex;min-height:100vh}
+  
+  /* Tidio-Style Left Sidebar */
+  aside{width:260px;background:var(--sidebar-bg);color:#f8fafc;display:flex;flex-direction:column;flex-shrink:0;box-shadow:4px 0 24px rgba(0,0,0,0.12);z-index:10}
+  .brand{padding:20px 18px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #1e293b}
+  .brand-logo{width:36px;height:36px;background:linear-gradient(135deg,#2563eb,#7c3aed);border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;color:#fff;box-shadow:0 4px 12px rgba(37,99,235,0.4)}
+  .brand-name{font-weight:700;font-size:15px;color:#fff;letter-spacing:-0.3px}
+  .brand-sub{font-size:11px;color:#94a3b8;margin-top:1px}
+  
+  .nav-group{padding:14px 12px;flex:1;overflow-y:auto}
+  .nav-title{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.6px;padding:0 8px 8px}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;color:#94a3b8;font-size:13.5px;font-weight:600;cursor:pointer;margin-bottom:4px;transition:all 0.15s ease}
+  .nav-item:hover{background:var(--sidebar-hover);color:#f8fafc}
+  .nav-item.active{background:var(--sidebar-active);color:#ffffff;box-shadow:0 4px 12px rgba(37,99,235,0.4)}
+  .nav-icon{font-size:16px}
+
+  .site-selector-box{padding:14px;border-top:1px solid #1e293b;background:#0b1120}
+  .site-selector-label{font-size:11px;color:#94a3b8;font-weight:600;margin-bottom:6px;display:block}
+  .site-item{padding:10px 12px;border-radius:8px;border:1px solid #1e293b;margin-bottom:6px;cursor:pointer;background:#0f172a;transition:all 0.15s ease}
+  .site-item:hover{border-color:#3b82f6}
+  .site-item.active{border-color:#3b82f6;background:#1e293b}
+  .site-item .sname{font-weight:600;font-size:13px;color:#f8fafc}
+  .site-item .sid{font-size:11px;color:#94a3b8}
+
+  /* Main Container */
+  .main-wrapper{flex:1;display:flex;flex-direction:column;min-width:0}
+  header{background:#ffffff;height:64px;border-bottom:1px solid var(--line);padding:0 28px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 3px rgba(0,0,0,0.02)}
+  header h1{font-size:18px;font-weight:700;color:#0f172a}
   .me{display:flex;align-items:center;gap:12px}
-  .me .uname{font-size:13px;opacity:.9}
-  .btn{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;font-weight:600}
-  .btn.green{background:#10b981}.btn.ghost{background:transparent;color:var(--blue);border:1px solid var(--blue)}
-  .btn.small{padding:5px 10px;font-size:12px}
+  .uname{font-size:13px;font-weight:600;color:#334155}
+  
+  .btn{background:var(--blue);color:#fff;border:none;border-radius:8px;padding:9px 16px;font-size:13px;cursor:pointer;font-weight:600;transition:all 0.15s ease;display:inline-flex;align-items:center;gap:6px}
+  .btn:hover{opacity:0.92;transform:translateY(-1px)}
+  .btn.green{background:#10b981}.btn.ghost{background:transparent;color:#475569;border:1px solid #cbd5e1}
+  .btn.ghost:hover{background:#f1f5f9;color:#0f172a}
+  .btn.small{padding:6px 12px;font-size:12px}
   .btn:disabled{opacity:.5;cursor:not-allowed}
-  .layout{display:flex;min-height:calc(100vh - 60px)}
-  aside{width:250px;background:var(--card);border-right:1px solid var(--line);padding:16px;flex-shrink:0}
-  aside h3{font-size:12px;color:var(--muted);text-transform:uppercase;margin:14px 0 8px}
-  .site{padding:10px;border:1px solid var(--line);border-radius:8px;margin-bottom:8px;cursor:pointer;font-size:13px}
-  .site.active{border-color:var(--blue);background:#eef2ff}
-  .site .sname{font-weight:600}
-  .site .sid{color:var(--muted);font-size:11px}
-  .newsite{display:flex;flex-direction:column;gap:8px;margin-top:8px}
-  input,select{width:100%;border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:13px;outline:none}
-  input:focus,select:focus{border-color:var(--blue)}
-  main{flex:1;padding:24px;overflow:auto}
-  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}
-  .tab{padding:8px 14px;border-radius:20px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:13px;font-weight:600;color:var(--muted)}
-  .tab.active{background:var(--blue);color:#fff;border-color:var(--blue)}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
-  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:16px}
-  .num{font-size:24px;font-weight:700;color:var(--blue)}
-  .lbl{font-size:11px;color:var(--muted)}
-  .code{background:#111827;color:#34d399;padding:12px;border-radius:8px;font-size:12px;white-space:pre-wrap;word-break:break-all;font-family:Consolas,monospace}
-  .badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600}
+  
+  main{padding:28px;flex:1;overflow-y:auto}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:20px;box-shadow:0 1px 3px rgba(0,0,0,0.03)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px}
+  .card-metric{background:#ffffff;border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 1px 3px rgba(0,0,0,0.02)}
+  .num{font-size:28px;font-weight:800;color:#2563eb;letter-spacing:-0.5px}
+  .lbl{font-size:12px;font-weight:600;color:#64748b;margin-top:2px}
+  
+  .code{background:#0f172a;color:#34d399;padding:16px;border-radius:10px;font-size:13px;white-space:pre-wrap;word-break:break-all;font-family:Consolas,monospace;border:1px solid #1e293b}
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:700}
   .ok{background:#d1fae5;color:#065f46}.no{background:#fee2e2;color:#991b1b}
-  .msg{margin:6px 0;padding:8px 10px;border-radius:8px;font-size:13px;background:#f3f4f6}
-  .msg.user{background:#dbeafe}.msg.agent{background:#d1fae5;color:#065f46}.msg.sys{background:#fef3c7;color:#92400e}
-  .msg .meta{font-size:11px;color:var(--muted)}
-  .empty{color:var(--muted);font-size:12px}
-  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-  .hidden{display:none}
+  
+  input,select{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-size:13.5px;outline:none;transition:border-color 0.15s ease}
+  input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,0.1)}
+  
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
   .tabcontent{display:none}.tabcontent.active{display:block}
+  .msg{margin:8px 0;padding:10px 14px;border-radius:10px;font-size:13.5px;background:#f1f5f9;line-height:1.45}
+  .msg.user{background:#dbeafe;color:#1e3a8a}.msg.agent{background:#d1fae5;color:#065f46}.msg.sys{background:#fef3c7;color:#92400e}
+  .msg .meta{font-size:11px;color:var(--muted);margin-bottom:2px}
+  .empty{color:var(--muted);font-size:13px}
 </style>
 </head>
 <body>
-<header>
-  <span>🤖 AI Chat — Dashboard</span>
-  <div class="me">
-    <span class="uname" id="uname"></span>
-    <button class="btn small ghost" id="logout">Logout</button>
-  </div>
-</header>
 
-<div class="layout">
-  <aside>
-    <button class="btn green" style="width:100%" id="createSite">+ New site</button>
-    <div class="newsite" id="newSiteBox" style="display:none">
-      <input type="text" id="nsName" placeholder="Site name (e.g. My Shop)">
-      <input type="url" id="nsUrl" placeholder="https://your-site.com">
-      <button class="btn small" id="nsSave">Save site</button>
+<!-- Left Tidio-Style Sidebar -->
+<aside>
+  <div class="brand">
+    <div class="brand-logo">⚡</div>
+    <div>
+      <div class="brand-name">Usama Sheikh AI</div>
+      <div class="brand-sub">SaaS Control Panel</div>
     </div>
-    <h3>Your websites</h3>
+  </div>
+
+  <div class="nav-group" id="tabs">
+    <div class="nav-title">Menu</div>
+    <div class="nav-item active" data-tab="overview"><span class="nav-icon">📊</span> Overview</div>
+    <div class="nav-item" data-tab="live"><span class="nav-icon">💬</span> Live Chat (Inbox)</div>
+    <div class="nav-item" data-tab="conversations"><span class="nav-icon">📜</span> Chat History</div>
+    <div class="nav-item" data-tab="leads"><span class="nav-icon">📩</span> Captured Leads</div>
+    <div class="nav-item" data-tab="train"><span class="nav-icon">🤖</span> AI Knowledge Base</div>
+    <div class="nav-item" data-tab="embed"><span class="nav-icon">🧩</span> Embed Widget</div>
+    <div class="nav-item" data-tab="settings"><span class="nav-icon">⚙️</span> Widget Settings</div>
+  </div>
+
+  <div class="site-selector-box">
+    <div class="site-selector-label">SELECT WEBSITE</div>
     <div id="siteList"></div>
-  </aside>
+    <button class="btn green small" style="width:100%;margin-top:8px;justify-content:center" id="createSite">+ Add Website</button>
+    <div class="newsite" id="newSiteBox" style="display:none;margin-top:8px">
+      <input type="text" id="nsName" placeholder="Site name (e.g. My Shop)" style="background:#0f172a;color:#fff;border-color:#334155">
+      <input type="url" id="nsUrl" placeholder="https://your-site.com" style="background:#0f172a;color:#fff;border-color:#334155">
+      <button class="btn small" id="nsSave" style="width:100%;justify-content:center;margin-top:4px">Save Site</button>
+    </div>
+  </div>
+</aside>
+
+<!-- Main Wrapper -->
+<div class="main-wrapper">
+  <header>
+    <div class="title-area">
+      <h1 id="pageTitle">Dashboard Overview</h1>
+    </div>
+    <div class="me">
+      <span class="uname" id="uname">Loading user...</span>
+      <button class="btn small ghost" id="logout">Logout</button>
+    </div>
+  </header>
 
   <main>
-    <div id="noSite" class="card" style="display:none">Select or create a website to manage its chatbot.</div>
+    <div id="noSite" class="card" style="display:none">Select or create a website from the left sidebar to manage its chatbot.</div>
 
     <div id="workspace" style="display:none">
-      <div class="tabs" id="tabs">
-        <button class="tab active" data-tab="overview">Overview</button>
-        <button class="tab" data-tab="embed">Embed</button>
-        <button class="tab" data-tab="train">Train</button>
-        <button class="tab" data-tab="live">Live chat</button>
-        <button class="tab" data-tab="conversations">Conversations</button>
-        <button class="tab" data-tab="leads">Leads</button>
-        <button class="tab" data-tab="settings">Settings</button>
-      </div>
-
       <div class="tabcontent active" id="tab-overview">
         <div class="cards" id="ovCards"></div>
-        <div class="card"><h2 style="font-size:15px;margin-bottom:8px">Knowledge base <span id="ovKbState"></span></h2><div id="ovKbInfo" class="empty"></div></div>
+        <div class="card">
+          <h2 style="font-size:16px;font-weight:700;margin-bottom:8px">AI Knowledge Base Status <span id="ovKbState"></span></h2>
+          <div id="ovKbInfo" class="empty"></div>
+        </div>
       </div>
 
       <div class="tabcontent" id="tab-embed">
-        <div class="card"><h2 style="font-size:15px;margin-bottom:8px">Widget embed code — paste before &lt;/body&gt;</h2>
+        <div class="card">
+          <h2 style="font-size:16px;font-weight:700;margin-bottom:8px">Widget Embed Code — paste before &lt;/body&gt;</h2>
           <div class="code" id="embedCode"></div>
-          <div style="margin-top:14px" class="row">
-            <button class="btn green" id="btnVerifyEmbed">Verify Installation</button>
-            <span id="embedVerifyStatus" class="empty">Click to verify if the widget code is active on your website.</span>
+          <div style="margin-top:16px" class="row">
+            <button class="btn green" id="btnVerifyEmbed">🔍 Verify Installation</button>
+            <span id="embedVerifyStatus" class="empty">Click to verify if the widget code is active on your live website.</span>
           </div>
         </div>
       </div>
 
       <div class="tabcontent" id="tab-train">
         <div class="card">
-          <h2 style="font-size:15px;margin-bottom:8px">Train the bot on your website</h2>
-          <div class="row"><input type="url" id="trainUrl" placeholder="https://your-site.com">
-          <button class="btn green" id="btnTrain">Train</button></div>
-          <div class="empty" id="trainInfo" style="margin-top:8px"></div>
+          <h2 style="font-size:16px;font-weight:700;margin-bottom:8px">Train AI on Website Content</h2>
+          <p style="font-size:13px;color:#64748b;margin-bottom:12px">Crawls your website and trains the AI assistant with your pages, products, services, and contact info.</p>
+          <div class="row">
+            <input type="url" id="trainUrl" placeholder="https://your-site.com" style="max-width:450px">
+            <button class="btn green" id="btnTrain">⚡ Start Training</button>
+          </div>
+          <div class="empty" id="trainInfo" style="margin-top:10px"></div>
         </div>
       </div>
 
       <div class="tabcontent" id="tab-live">
         <div class="card">
-          <h2 style="font-size:15px;margin-bottom:8px">Live chat (human agent)</h2>
-          <div class="row"><input type="text" id="agentId" placeholder="Your name">
-          <button class="btn" id="goOnline">Go online</button>
-          <span id="agentStatus" class="empty"></span></div>
-          <div id="liveBox" style="margin-top:12px"><div class="empty">When a visitor requests a human, it appears here.</div></div>
-          <div class="row" style="margin-top:12px">
-            <select id="liveSession"><option value="">Select session…</option></select>
-            <input type="text" id="agentReply" placeholder="Type reply..." style="flex:2">
-            <button class="btn green" id="sendReply">Send</button>
+          <h2 style="font-size:16px;font-weight:700;margin-bottom:8px">Live Agent Console (Real-Time Inbox)</h2>
+          <div class="row" style="margin-bottom:14px">
+            <input type="text" id="agentId" placeholder="Your agent name" style="max-width:240px">
+            <button class="btn" id="goOnline">🟢 Go Online</button>
+            <span id="agentStatus" class="empty"></span>
+          </div>
+          <div id="liveBox" style="margin-top:12px;background:#f8fafc;padding:14px;border-radius:10px;border:1px solid #e2e8f0;min-height:200px"><div class="empty">When a visitor requests live support, it appears here in real-time.</div></div>
+          <div class="row" style="margin-top:14px">
+            <select id="liveSession" style="max-width:240px"><option value="">Select active session…</option></select>
+            <input type="text" id="agentReply" placeholder="Type reply to visitor..." style="flex:1">
+            <button class="btn green" id="sendReply">Send Reply</button>
           </div>
         </div>
       </div>
 
       <div class="tabcontent" id="tab-conversations">
-        <div class="card"><h2 style="font-size:15px;margin-bottom:8px">Recent conversations</h2><div id="convBox"><div class="empty">Loading…</div></div></div>
+        <div class="card">
+          <h2 style="font-size:16px;font-weight:700;margin-bottom:12px">Recent Conversations</h2>
+          <div id="convBox"><div class="empty">Loading chat history…</div></div>
+        </div>
       </div>
 
       <div class="tabcontent" id="tab-leads">
-        <div class="card"><h2 style="font-size:15px;margin-bottom:8px">Leads <a class="btn small" id="exportCsv" style="float:right">Export CSV</a></h2><div id="leadsBox"><div class="empty">Loading…</div></div></div>
+        <div class="card">
+          <h2 style="font-size:16px;font-weight:700;margin-bottom:12px">Captured Leads & Contacts <a class="btn small ghost" id="exportCsv" style="float:right">📥 Export CSV</a></h2>
+          <div id="leadsBox"><div class="empty">Loading leads…</div></div>
+        </div>
       </div>
 
       <div class="tabcontent" id="tab-settings">
         <div class="card">
-          <h2 style="font-size:15px;margin-bottom:8px">Chatbot settings</h2>
-          <label style="font-size:12px;color:#374151;margin:10px 0 4px;display:block">Site name</label>
+          <h2 style="font-size:16px;font-weight:700;margin-bottom:12px">Chatbot Customization & Settings</h2>
+          <label style="font-size:12px;font-weight:600;color:#334155;margin:10px 0 4px;display:block">Site Name</label>
           <input type="text" id="stName" placeholder="My Shop">
-          <label style="font-size:12px;color:#374151;margin:10px 0 4px;display:block">Website URL (used to allow only this domain)</label>
+          
+          <label style="font-size:12px;font-weight:600;color:#334155;margin:12px 0 4px;display:block">Website URL (enforces domain origin security)</label>
           <input type="url" id="stUrl" placeholder="https://myshop.com">
-          <label style="font-size:12px;color:#374151;margin:10px 0 4px;display:block">Greeting message</label>
-          <input type="text" id="stGreeting" placeholder="Hi! How can I help?">
-          <div class="row" style="margin-top:12px">
-            <div style="font-size:13px">Theme color</div><input type="color" id="stColor" value="#2563eb" style="width:60px;padding:0">
-            <span style="flex:1"></span>
+          
+          <label style="font-size:12px;font-weight:600;color:#334155;margin:12px 0 4px;display:block">Initial Greeting Message</label>
+          <input type="text" id="stGreeting" placeholder="Hi there! 👋 How can I help you today?">
+          
+          <div class="row" style="margin-top:14px">
+            <div style="font-size:13px;font-weight:600">Widget Brand Color</div>
+            <input type="color" id="stColor" value="#2563eb" style="width:60px;height:38px;padding:2px;cursor:pointer">
           </div>
-          <label style="font-size:12px;color:#374151;margin:14px 0 4px;display:block">Lead webhook URL (optional — POSTs new leads here)</label>
+          
+          <label style="font-size:12px;font-weight:600;color:#334155;margin:14px 0 4px;display:block">Lead Webhook URL (optional — POSTs leads to your server/Zapier)</label>
           <input type="url" id="stWebhook" placeholder="https://yoursite.com/webhook">
-          <button class="btn green" id="stSave" style="margin-top:14px">Save settings</button>
+          
+          <button class="btn green" id="stSave" style="margin-top:16px">Save Settings</button>
 
-          <div style="margin-top:20px;padding-top:14px;border-top:1px solid #e5e7eb">
-            <h3 style="font-size:13px;margin-bottom:4px;color:#374151">📧 Email Notification Diagnostics</h3>
-            <p style="font-size:11px;color:#6b7280;margin-bottom:10px">Dispatches a test lead alert to your registered account email address to verify delivery.</p>
+          <div style="margin-top:24px;padding-top:16px;border-top:1px solid #e2e8f0">
+            <h3 style="font-size:14px;font-weight:700;margin-bottom:4px;color:#0f172a">📧 Email Notification Diagnostics</h3>
+            <p style="font-size:12px;color:#64748b;margin-bottom:12px">Dispatches a test lead alert to your registered account email address to verify instant delivery.</p>
             <button class="btn small" id="stTestEmail">🧪 Send Test Email</button>
             <span id="stEmailStatus" style="font-size:12px;margin-left:10px;color:#059669"></span>
           </div>
@@ -182,28 +239,45 @@
 
   /* ---- auth ---- */
   req('/api/auth/me').then(function (d) {
-    var adminBtn = d.user.role === 'admin' ? ' <a href="/admin" class="btn small green" style="margin-left:8px;text-decoration:none;display:inline-block">👑 Super Admin Panel</a>' : '';
+    var adminBtn = d.user.role === 'admin' ? ' <a href="/admin" class="btn small green" style="margin-left:8px;text-decoration:none;display:inline-flex;align-items:center;gap:4px">👑 Super Admin Panel</a>' : '';
     document.getElementById('uname').innerHTML = esc(d.user.name) + ' (' + esc(d.user.email) + ')' + adminBtn;
   });
+
   document.getElementById('logout').addEventListener('click', function () {
-    fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }).then(function () { location.href = '/login'; });
+    req('/api/auth/logout', { method: 'POST' }).then(function () { location.href = '/login'; });
   });
 
-  /* ---- sites ---- */
+  /* ---- load user sites ---- */
   function loadSites() {
-    req('/api/my/sites').then(function (sites) {
-      if (!Array.isArray(sites)) sites = [];
+    return req('/api/my/sites').then(function (list) {
+      sitesCache = list || [];
       var box = document.getElementById('siteList');
-      box.innerHTML = sites.map(function (s) {
-        return '<div class="site ' + (currentSite === s.id ? 'active' : '') + '" data-id="' + esc(s.id) + '">' +
-          '<div class="sname">' + esc(s.name) + '</div><div class="sid">' + esc(s.id) + ' · ' + (s.trained ? 'trained' : 'untrained') + '</div></div>';
+      if (!sitesCache.length) {
+        box.innerHTML = '<div class="empty">No websites registered yet.</div>';
+        currentSite = null;
+        document.getElementById('noSite').style.display = 'block';
+        document.getElementById('workspace').style.display = 'none';
+        return;
+      }
+      document.getElementById('noSite').style.display = 'none';
+      document.getElementById('workspace').style.display = 'block';
+      if (!currentSite || !sitesCache.some(function (s) { return s.id === currentSite; })) {
+        currentSite = sitesCache[0].id;
+      }
+      box.innerHTML = sitesCache.map(function (s) {
+        var cls = s.id === currentSite ? 'site-item active' : 'site-item';
+        return '<div class="' + cls + '" data-id="' + esc(s.id) + '">' +
+                 '<div class="sname">' + esc(s.name || s.id) + '</div>' +
+                 '<div class="sid">' + esc(s.siteUrl || s.id) + '</div>' +
+               '</div>';
       }).join('');
-      Array.prototype.forEach.call(box.querySelectorAll('.site'), function (el) {
-        el.addEventListener('click', function () { currentSite = el.getAttribute('data-id'); loadSites(); loadAll(); });
+      Array.prototype.forEach.call(box.querySelectorAll('.site-item'), function (el) {
+        el.addEventListener('click', function () {
+          currentSite = el.getAttribute('data-id');
+          loadSites();
+          loadAll();
+        });
       });
-      if (!currentSite && sites.length) { currentSite = sites[0].id; loadAll(); }
-      document.getElementById('noSite').style.display = sites.length ? 'none' : 'block';
-      document.getElementById('workspace').style.display = sites.length ? 'block' : 'none';
     }).catch(function () {
       document.getElementById('noSite').style.display = 'block';
       document.getElementById('workspace').style.display = 'none';
@@ -229,15 +303,17 @@
   });
 
   /* ---- tabs ---- */
-  var tabBtns = document.querySelectorAll('#tabs .tab');
+  var tabBtns = document.querySelectorAll('#tabs .nav-item');
   Array.prototype.forEach.call(tabBtns, function (b) {
     b.addEventListener('click', function () {
       Array.prototype.forEach.call(tabBtns, function (x) { x.classList.remove('active'); });
       b.classList.add('active');
-      var id = 'tab-' + b.getAttribute('data-tab');
+      var tabName = b.getAttribute('data-tab');
+      var id = 'tab-' + tabName;
+      document.getElementById('pageTitle').textContent = b.textContent.trim();
       Array.prototype.forEach.call(document.querySelectorAll('.tabcontent'), function (x) { x.classList.remove('active'); });
       document.getElementById(id).classList.add('active');
-      if (b.getAttribute('data-tab') === 'live') connectAgent();
+      if (tabName === 'live') connectAgent();
     });
   });
 
@@ -246,97 +322,86 @@
     if (!currentSite) return;
     req('/api/my/sites/' + currentSite + '/summary').then(function (d) {
       document.getElementById('ovCards').innerHTML =
-        '<div class="card"><div class="num">' + d.analytics.sessions + '</div><div class="lbl">Sessions</div></div>' +
-        '<div class="card"><div class="num">' + d.analytics.messages + '</div><div class="lbl">Messages</div></div>' +
-        '<div class="card"><div class="num">' + d.analytics.liveChats + '</div><div class="lbl">Live chats</div></div>' +
-        '<div class="card"><div class="num">' + d.leads + '</div><div class="lbl">Leads</div></div>' +
-        '<div class="card"><div class="num">' + d.kb.chunks + '</div><div class="lbl">Knowledge chunks</div></div>';
+        '<div class="card-metric"><div class="num">' + d.analytics.sessions + '</div><div class="lbl">Sessions</div></div>' +
+        '<div class="card-metric"><div class="num">' + d.analytics.messages + '</div><div class="lbl">Messages</div></div>' +
+        '<div class="card-metric"><div class="num">' + d.analytics.liveChats + '</div><div class="lbl">Live chats</div></div>' +
+        '<div class="card-metric"><div class="num">' + d.leads + '</div><div class="lbl">Leads</div></div>' +
+        '<div class="card-metric"><div class="num">' + d.kb.chunks + '</div><div class="lbl">Knowledge chunks</div></div>';
       var st = document.getElementById('ovKbState');
-      if (d.kb.indexed) st.innerHTML = ' <span class="badge ok">Trained</span> ' + d.kb.chunks + ' chunks';
+      if (d.kb.indexed) st.innerHTML = ' <span class="badge ok">✓ Trained</span> ' + d.kb.chunks + ' chunks';
       else st.innerHTML = ' <span class="badge no">Not trained</span>';
       document.getElementById('ovKbInfo').textContent = d.kb.siteUrl ? (d.kb.siteName + ' — ' + d.kb.siteUrl) : 'Train the bot so it can answer about your site.';
-      document.getElementById('embedCode').textContent =
-        '<script>\n  window.AIChatConfig = {\n' +
-        '    url: "' + location.origin + '",\n' +
-        '    siteId: "' + currentSite + '",\n' +
-        '    title: "Support",\n' +
-        '    greeting: "Hi! How can I help?"\n' +
-        '  };\n<\/script>\n' +
-        '<script src="' + location.origin + '/widget.js" defer><\/script>';
-      document.getElementById('trainInfo').textContent = d.kb.indexed ? ('Last trained: ' + new Date(d.kb.trainedAt).toLocaleString()) : 'Not trained yet. Enter your website URL.';
-      // settings
+
+      var scriptOrigin = location.origin;
+      var code = '&lt;script&gt;window.AIChatConfig={siteId:"' + esc(d.siteId) + '",server:"' + esc(scriptOrigin) + '"};&lt;/script&gt;\n' +
+                 '&lt;script src="' + esc(scriptOrigin) + '/widget.js" defer&gt;&lt;/script&gt;';
+      document.getElementById('embedCode').innerHTML = code;
+
+      document.getElementById('trainUrl').value = d.siteUrl || '';
       document.getElementById('stName').value = d.siteName || '';
       document.getElementById('stUrl').value = d.siteUrl || '';
       document.getElementById('stGreeting').value = d.greeting || '';
       document.getElementById('stColor').value = d.themeColor || '#2563eb';
       document.getElementById('stWebhook').value = d.webhookUrl || '';
-      document.getElementById('exportCsv').href = '/api/my/sites/' + currentSite + '/leads/export';
     });
-    loadChats();
-    loadLeads();
-  }
 
-  function loadChats() {
-    req('/api/my/sites/' + currentSite + '/chats').then(function (d) {
+    req('/api/my/sites/' + currentSite + '/conversations').then(function (d) {
       var box = document.getElementById('convBox');
-      var convs = d.conversations || {};
-      var keys = Object.keys(convs).reverse().slice(0, 8);
+      var keys = Object.keys(d.conversations || {});
       if (!keys.length) { box.innerHTML = '<div class="empty">No conversations yet.</div>'; return; }
-      box.innerHTML = keys.map(function (sid) {
-        var c = convs[sid], msgs = c.messages || [];
-        return '<div style="font-size:12px;margin:10px 0 4px"><b>' + esc(sid) + '</b> <span style="color:#999">· ' + msgs.length + ' msgs · ' + new Date(c.startedAt).toLocaleString() + '</span></div>' +
-          msgs.slice(-3).map(function (m) { return '<div class="msg ' + (m.sender === 'user' ? 'user' : 'author') + '"><span class="meta">' + esc(m.sender) + ':</span> ' + esc(String(m.text).slice(0, 90)) + '</div>'; }).join('');
+      box.innerHTML = keys.map(function (k) {
+        var c = d.conversations[k];
+        var msgs = c.messages.map(function (m) {
+          var cls = m.sender === 'user' ? 'user' : m.sender === 'agent' ? 'agent' : '';
+          return '<div class="msg ' + cls + '"><div class="meta">' + esc(m.sender) + ' · ' + esc(new Date(m.at).toLocaleString()) + '</div>' + esc(m.text) + '</div>';
+        }).join('');
+        return '<div style="margin-bottom:16px;padding:12px;border:1px solid #e2e8f0;border-radius:10px"><b>Session ' + esc(k) + '</b> <span class="empty">(' + esc(new Date(c.startedAt).toLocaleString()) + ')</span>' + msgs + '</div>';
       }).join('');
     });
-  }
-  function loadLeads() {
+
     req('/api/my/sites/' + currentSite + '/leads').then(function (d) {
       var box = document.getElementById('leadsBox');
-      var ls = d.leads || [];
-      if (!ls.length) { box.innerHTML = '<div class="empty">No leads yet.</div>'; return; }
-      box.innerHTML = ls.slice(0, 12).map(function (l) {
-        return '<div class="msg"><b>' + esc(l.name) + '</b> <a href="mailto:' + esc(l.email) + '" style="color:#2563eb">' + esc(l.email) + '</a>' + (l.phone ? ' · ' + esc(l.phone) : '') + '<div class="meta">' + new Date(l.at).toLocaleString() + '</div></div>';
-      }).join('');
+      if (!d.leads || !d.leads.length) { box.innerHTML = '<div class="empty">No leads captured yet.</div>'; return; }
+      box.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:13px">' +
+        '<tr style="border-bottom:2px solid #e2e8f0;text-align:left"><th style="padding:8px">Name</th><th>Email</th><th>Phone</th><th>Message</th><th>Date</th></tr>' +
+        d.leads.map(function (l) {
+          return '<tr style="border-bottom:1px solid #f1f5f9"><td style="padding:8px"><b>' + esc(l.name) + '</b></td><td><a href="mailto:' + esc(l.email) + '">' + esc(l.email) + '</a></td><td>' + esc(l.phone) + '</td><td>' + esc(l.message) + '</td><td>' + esc(new Date(l.at).toLocaleString()) + '</td></tr>';
+        }).join('') + '</table>';
     });
+
+    document.getElementById('exportCsv').href = '/api/my/sites/' + currentSite + '/leads/export';
   }
 
   /* ---- verify embed ---- */
   document.getElementById('btnVerifyEmbed').addEventListener('click', function () {
-    var info = document.getElementById('embedVerifyStatus');
-    var b = document.getElementById('btnVerifyEmbed');
-    b.disabled = true; b.textContent = 'Verifying…';
-    info.innerHTML = '<span class="empty">Checking website HTML…</span>';
+    var st = document.getElementById('embedVerifyStatus');
+    st.innerHTML = 'Verifying live site HTML…';
     req('/api/my/sites/' + currentSite + '/verify-embed').then(function (d) {
-      b.disabled = false; b.textContent = 'Verify Installation';
-      if (d.active) {
-        info.innerHTML = '<span class="badge ok">' + esc(d.message) + '</span>';
-      } else {
-        info.innerHTML = '<span class="badge no">' + esc(d.message || d.error) + '</span>';
-      }
+      st.innerHTML = d.active ? '<span class="badge ok">' + esc(d.message) + '</span>' : '<span class="badge no">' + esc(d.message) + '</span>';
     }).catch(function (e) {
-      b.disabled = false; b.textContent = 'Verify Installation';
-      info.innerHTML = '<span class="badge no">' + esc(e.message) + '</span>';
+      st.innerHTML = '<span class="badge no">' + esc(e.message) + '</span>';
     });
   });
 
-  /* ---- train (async + progress) ---- */
+  /* ---- train ---- */
   document.getElementById('btnTrain').addEventListener('click', function () {
     var url = document.getElementById('trainUrl').value.trim();
-    if (!url) { alert('Enter your website URL'); return; }
-    var b = document.getElementById('btnTrain');
-    b.disabled = true; b.textContent = 'Training…';
-    req('/api/train', { method: 'POST', body: { siteId: currentSite, url: url } }).then(function (d) {
-      if (d.started) pollTrain();
-      else { b.disabled = false; b.textContent = 'Train'; alert(d.error || 'Error'); }
+    if (!url) { alert('Enter a site URL to crawl'); return; }
+    var b = this; var info = document.getElementById('trainInfo');
+    b.disabled = true; info.textContent = 'Starting training job…';
+    req('/api/train?siteId=' + encodeURIComponent(currentSite), { method: 'POST', body: { url: url } }).then(function (d) {
+      if (d.error) { alert(d.error); b.disabled = false; return; }
+      pollTrain(b, info);
+    }).catch(function (e) {
+      alert('Training failed: ' + e.message); b.disabled = false;
     });
   });
-  function pollTrain() {
-    var b = document.getElementById('btnTrain');
-    var info = document.getElementById('trainInfo');
+
+  function pollTrain(b, info) {
     var timer = setInterval(function () {
       req('/api/my/sites/' + currentSite + '/train-status').then(function (j) {
         if (!j.running) {
-          clearInterval(timer); b.disabled = false; b.textContent = 'Train';
+          clearInterval(timer); b.disabled = false; b.textContent = '⚡ Start Training';
           if (j.error) { info.textContent = 'Training failed: ' + j.error; }
           else { loadAll(); info.textContent = 'Training done ✓ ' + j.total + ' pages indexed.'; }
         } else {
@@ -355,7 +420,7 @@
       webhookUrl: document.getElementById('stWebhook').value.trim()
     };
     req('/api/my/sites/' + currentSite, { method: 'POST', body: body }).then(function (d) {
-      if (d.ok) { loadSites(); loadAll(); alert('Saved'); }
+      if (d.ok) { loadSites(); loadAll(); alert('Settings saved successfully!'); }
     });
   });
 
@@ -370,20 +435,6 @@
       btn.disabled = false; status.style.color = '#dc2626'; status.textContent = e.message;
     });
   });
-
-  /* ---- sound (agent alert) ---- */
-  function beep() {
-    try {
-      var AC = window.AudioContext || window.webkitAudioContext;
-      var ctx = new AC();
-      var o = ctx.createOscillator(), g = ctx.createGain();
-      o.connect(g); g.connect(ctx.destination);
-      o.frequency.value = 880; o.type = 'sine';
-      g.gain.setValueAtTime(0.3, ctx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-      o.start(); o.stop(ctx.currentTime + 0.3);
-    } catch (e) {}
-  }
 
   /* ---- live chat agent ---- */
   function connectAgent() {
@@ -407,42 +458,33 @@
               addLive(c.sessionId, c.name, msg.text, who);
             });
           });
-          renderLive();
-        } else if (m.type === 'user-msg' && m.siteId === currentSite) { addLive(m.sessionId, m.name, m.text, 'user'); beep(); }
-        else if (m.type === 'agent-joined' && m.siteId === currentSite) { addLive(m.sessionId, m.name || 'Visitor', '* requested human support *', 'sys'); beep(); }
+        }
       };
-      ws.onclose = function () { document.getElementById('agentStatus').innerHTML = '<span class="badge no">Offline</span>'; };
     });
   }
-  function addLive(id, name, text, who) {
-    if (!id) return;
-    if (!live[id]) live[id] = [];
-    live[id].push({ who: who, name: name || 'Visitor', text: text, at: new Date().toLocaleTimeString() });
-    var sel = document.getElementById('liveSession');
-    var exists = false;
-    for (var i = 0; i < sel.options.length; i++) if (sel.options[i].value === id) exists = true;
-    if (!exists) { var o = document.createElement('option'); o.value = id; o.textContent = (name || 'Visitor') + ' · ' + id; sel.appendChild(o); }
-    renderLive();
-  }
-  function renderLive() {
+
+  function addLive(sid, name, text, who) {
     var box = document.getElementById('liveBox');
-    var ids = Object.keys(live);
-    if (!ids.length) { box.innerHTML = '<div class="empty">When a visitor requests a human, it appears here.</div>'; return; }
-    box.innerHTML = ids.map(function (id) {
-      var rows = live[id];
-      return '<div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:10px;margin-bottom:8px"><b>' + esc(rows[0].name) + '</b> <span style="color:#999">· ' + esc(id) + '</span>' +
-        rows.map(function (r) { return '<div class="msg ' + (r.who === 'user' ? 'user' : r.who === 'sys' ? 'sys' : 'author') + '"><span class="meta">' + r.at + ':</span> ' + esc(r.text) + '</div>'; }).join('') + '</div>';
-    }).join('');
+    var d = document.createElement('div');
+    d.className = 'msg ' + who;
+    d.innerHTML = '<div class="meta">[' + esc(sid) + '] ' + esc(name || 'Visitor') + '</div>' + esc(text);
+    box.appendChild(d);
+    box.scrollTop = box.scrollHeight;
+    var sel = document.getElementById('liveSession');
+    if (!Array.prototype.some.call(sel.options, function (o) { return o.value === sid; })) {
+      var opt = document.createElement('option'); opt.value = sid; opt.textContent = (name || sid); sel.appendChild(opt);
+    }
   }
+
+  document.getElementById('goOnline').addEventListener('click', connectAgent);
   document.getElementById('sendReply').addEventListener('click', function () {
-    var id = document.getElementById('liveSession').value;
+    var sid = document.getElementById('liveSession').value;
     var text = document.getElementById('agentReply').value.trim();
-    if (!id || !text) return;
-    if (ws && ws.readyState === 1) {
-      ws.send(JSON.stringify({ type: 'agent-msg', sessionId: id, siteId: currentSite, text: text }));
-      addLive(id, 'You', text, 'author');
-      document.getElementById('agentReply').value = '';
-    } else alert('Go online as an agent first.');
+    if (!sid || !text) return;
+    if (!ws || ws.readyState !== 1) { alert('Not connected. Click "Go online" first.'); return; }
+    ws.send(JSON.stringify({ type: 'agent-reply', sessionId: sid, text: text }));
+    addLive(sid, 'Agent', text, 'agent');
+    document.getElementById('agentReply').value = '';
   });
 
   loadSites();

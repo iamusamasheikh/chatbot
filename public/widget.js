@@ -62,7 +62,7 @@
     '.aichat-lead input{border:1px solid #d1d7e0;border-radius:10px;padding:9px 12px;font-size:14px;outline:none}',
     '.aichat-lead input:focus{border-color:#2563eb}',
     '.aichat-lead button{background:#10b981;color:#fff;border:none;border-radius:10px;padding:10px;font-size:14px;cursor:pointer;font-weight:600}',
-    '.aichat-powered{text-align:center;font-size:10px;color:#9ca3af;padding:4px;background:#fff}'
+    '.aichat-powered{text-align:center;font-size:11px;color:#6b7280;padding:6px 10px;background:#f9fafb;border-top:1px solid #f3f4f6;font-weight:500;letter-spacing:0.5px}'
   ].join('\n');
 
   var style = document.createElement('style');
@@ -94,10 +94,12 @@
       '<input type="text" placeholder="Type a message..." autocomplete="off">' +
       '<button class="aichat-send" aria-label="Send">➤</button>' +
     '</div>' +
-    '<div class="aichat-lead">' +
+    '<div class="aichat-lead" style="display:none">' +
       '<input type="text" class="lead-name" placeholder="Your name *">' +
       '<input type="email" class="lead-email" placeholder="Your email *">' +
-      '<div class="aichat-powered">POWERED BY <a href="https://usamasheikh.com" target="_blank" style="color:#6b7280;text-decoration:none;font-weight:600">⚡ Usama Sheikh AI</a></div>';
+      '<button class="lead-save">Get in touch</button>' +
+    '</div>' +
+    '<div class="aichat-powered">POWERED BY <a href="https://usamasheikh.com" target="_blank" style="color:#4b5563;text-decoration:none;font-weight:700">⚡ Usama Sheikh AI</a></div>';
 
   function mount() {
     if (!document.body) {
