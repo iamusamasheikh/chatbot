@@ -97,7 +97,7 @@ function localAnswer(question, siteId) {
   }
 
   const kb = store.getKnowledge(siteId);
-  const pages = kb.pages || [];
+  const pages = Array.isArray(kb.pages) ? kb.pages : (kb.pages ? Object.values(kb.pages) : []);
   
   // Look for service/about pages if asking about services
   if (qLower.includes('service') || qLower.includes('what do you do') || qLower.includes('offer') || qLower.includes('help me with')) {
