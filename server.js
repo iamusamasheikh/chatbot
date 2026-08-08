@@ -326,6 +326,28 @@ app.get('/api/admin/sites', requireAuth, requireAdmin, (req, res) => {
 
 /* ---------- helpers ---------- */
 function sendHtmlEmail(to, subject, htmlBody, textBody) {
+  // 1. Resend HTTP Mail API support (Zero Port 25 / ISP firewall restrictions!)
+  const resendKey = process.env.RESEND_API_KEY;
+  if (resendKey) {
+    fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + resendKey,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: config.mail.from || 'AI Support <onboarding@resend.dev>',
+        to: [to],
+        subject: subject,
+        html: htmlBody,
+        text: textBody
+      })
+    }).then((r) => r.json()).then((d) => console.log('[resend] Email sent:', d))
+      .catch((e) => console.warn('[resend] Send error:', e.message));
+    return;
+  }
+
+  // 2. Nodemailer SMTP or Sendmail
   let nodemailer;
   try { nodemailer = require('nodemailer'); } catch { console.warn('[mail] nodemailer not installed'); return; }
 

@@ -81,8 +81,15 @@ function extractText(html) {
   const metaMatch2 = html.match(/<meta[^>]+content=["']([\s\S]*?)["'][^>]+name=["']description["'][^>]*>/i);
   if (!metaMatch && metaMatch2) description = collapse(metaMatch2[1]);
 
-  // Remove nav/footer/header (usually noise)
-  let body = html.replace(/<(nav|footer|header|aside)[^>]*>[\s\S]*?<\/\1>/gi, ' ');
+  // Extract contacts (tel links, whatsapp links) before processing body
+  const contacts = [];
+  html.replace(/href=["'](tel:[^"']+|https?:\/\/(wa\.me|api\.whatsapp\.com)[^"']+)["']/gi, (m, link) => {
+    contacts.push(`Contact / WhatsApp Link: ${link}`);
+    return m;
+  });
+
+  // Preserve header, footer, nav (where contact info & WhatsApp buttons live)
+  let body = html;
 
   // Headings
   const headings = [];
@@ -92,22 +99,22 @@ function extractText(html) {
     return m;
   });
 
-  // Paragraphs, list items, table cells, and divs (as fallback)
+  // Paragraphs, list items, table cells, address, footer, header, span
   const blocks = [];
-  body.replace(/<(p|li|td|th|blockquote|figcaption)[^>]*>([\s\S]*?)<\/\1>/gi, (m, tag, inner) => {
+  body.replace(/<(p|li|td|th|blockquote|figcaption|address|footer|header|span)[^>]*>([\s\S]*?)<\/\1>/gi, (m, tag, inner) => {
     const t = collapse(stripTags(inner));
-    if (t && t.length > 12) blocks.push(t);
+    if (t && t.length > 5) blocks.push(t);
     return m;
   });
 
-  // Whole-body fallback text (for pages with few p/li tags)
+  // Whole-body fallback text (for pages with few tags)
   const bodyText = collapse(stripTags(body));
-  const parts = [title, description].filter(Boolean);
+  const parts = [title, description, ...contacts].filter(Boolean);
   parts.push(...headings, ...blocks);
 
   let text = parts.filter(Boolean).join('\n\n');
   if (text.split(' ').length < 60 && bodyText.split(' ').length > 80) {
-    text = [title, description, bodyText].filter(Boolean).join('\n\n');
+    text = [title, description, ...contacts, bodyText].filter(Boolean).join('\n\n');
   }
   return { title, text };
 }
