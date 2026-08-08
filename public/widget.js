@@ -221,12 +221,75 @@
     quickReplies();
   }
 
+  /* ---------- Tidio-style Lead Prompt ---------- */
+  function showTidioLeadCard(onComplete) {
+    if (leadDone) { if (onComplete) onComplete(); return; }
+    var card = document.createElement('div');
+    card.className = 'aichat-msg aichat-bot';
+    card.style.background = '#eef2ff';
+    card.style.borderColor = '#c7d2fe';
+    card.style.padding = '12px';
+    card.innerHTML =
+      '<div style="font-weight:600;margin-bottom:6px;color:#1e1b4b;font-size:13px">📧 Leave your email to receive updates & connect:</div>' +
+      '<div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">' +
+        '<input type="text" class="tidio-name" placeholder="Your name (optional)" style="padding:7px 10px;border:1px solid #c7d2fe;border-radius:6px;font-size:13px;outline:none">' +
+        '<input type="email" class="tidio-email" placeholder="Your email *" style="padding:7px 10px;border:1px solid #c7d2fe;border-radius:6px;font-size:13px;outline:none">' +
+        '<div style="display:flex;gap:6px;margin-top:2px;align-items:center">' +
+          '<button class="tidio-submit" style="flex:1;background:' + themeColor + ';color:#fff;border:none;border-radius:6px;padding:7px;font-size:12px;cursor:pointer;font-weight:600">Submit</button>' +
+          '<button class="tidio-skip" style="background:none;border:none;color:#6b7280;font-size:11px;cursor:pointer;padding:0 4px">Skip</button>' +
+        '</div>' +
+      '</div>';
+    msgsEl.appendChild(card);
+    msgsEl.scrollTop = msgsEl.scrollHeight;
+
+    var nameIn = card.querySelector('.tidio-name');
+    var emailIn = card.querySelector('.tidio-email');
+    var submitBtn = card.querySelector('.tidio-submit');
+    var skipBtn = card.querySelector('.tidio-skip');
+
+    submitBtn.onclick = function () {
+      var em = emailIn.value.trim();
+      var nm = nameIn.value.trim() || 'Visitor';
+      if (!em || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) {
+        emailIn.style.borderColor = '#ef4444';
+        return;
+      }
+      card.innerHTML = '<i>✓ Email saved! Connecting you now...</i>';
+      leadDone = true;
+      try { localStorage.setItem('aichat_lead_done', '1'); } catch (e) {}
+      fetch(server + '/api/lead', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Site-Id': siteId },
+        body: JSON.stringify({ sessionId: sessionId, siteId: siteId, name: nm, email: em })
+      }).catch(function () {});
+      if (onComplete) onComplete();
+    };
+
+    skipBtn.onclick = function () {
+      card.remove();
+      leadDone = true;
+      if (onComplete) onComplete();
+    };
+  }
+
   /* ---------- AI chat ---------- */
   function sendMessage() {
     var text = inputEl.value.trim();
     if (!text) return;
     inputEl.value = '';
     addMsg(text, 'user');
+
+    var alreadyDone = leadDone || (function(){ try { return localStorage.getItem('aichat_lead_done'); } catch(e){ return false; } })();
+    if (!alreadyDone && ENABLE_LEAD) {
+      showTidioLeadCard(function () {
+        processAiReply(text);
+      });
+    } else {
+      processAiReply(text);
+    }
+  }
+
+  function processAiReply(text) {
     var typing = addTyping();
     sendBtn.disabled = true;
     fetch(server + '/api/chat', {
@@ -236,7 +299,7 @@
     }).then(function (r) { return r.json(); }).then(function (data) {
       typing.remove();
       sendBtn.disabled = false;
-      if (data.reply) addMsg(data.reply.replace(/\n/g, '\n'), 'bot');
+      if (data.reply) addMsg(data.reply, 'bot');
     }).catch(function () {
       typing.remove();
       sendBtn.disabled = false;
