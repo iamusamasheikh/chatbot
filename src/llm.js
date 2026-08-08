@@ -80,32 +80,46 @@ async function callCloud(messages) {
   return text.trim();
 }
 
-// Zero-cost local fallback: answer straight from the knowledge base.
+// Intelligent local fallback: answers directly from knowledge base pages & smart Tidio-style fallbacks.
 function localAnswer(question, siteId) {
   const qLower = (question || '').toLowerCase().trim();
   const greetings = ['hi', 'hello', 'hey', 'salam', 'halo', 'good morning', 'good evening', 'namaste', 'help', 'who are you', 'what can you do'];
   if (greetings.includes(qLower) || qLower === 'hi!' || qLower === 'hello!') {
-    return 'Hi there! 👋 How can I help you today? Feel free to ask me any question about our website or services!';
+    return 'Hello! 👋 How can I help you today? Feel free to ask me any question about our services or business!';
+  }
+
+  if (qLower.includes('weather') || qLower.includes('recipe') || qLower.includes('sports score') || qLower.includes('cricket')) {
+    return "I'm sorry, I'm only able to assist with questions related to our services and business. 😊 Is there anything else I can help you with regarding our services?";
   }
 
   if (qLower.includes('owner') || qLower.includes('founder') || qLower.includes('who owns')) {
-    return 'Our team would be glad to connect you directly with management! You can leave your contact details here or click "Talk to a human" to chat live.';
-  }
-
-  if (qLower.includes('email') || qLower.includes('contact') || qLower.includes('phone') || qLower.includes('reach')) {
-    return 'You can leave your contact info right here in the chat, and our support team will get in touch with you shortly!';
+    return "I don't have specific details about the owner's name available right now. Feel free to leave your contact details or click 'Talk to a human' to connect with our team directly!";
   }
 
   const kb = store.getKnowledge(siteId);
-  if (!kb.indexed || !kb.chunks || !(kb.chunkCount || (kb.chunks.docs && kb.chunks.docs.length))) {
-    return 'Hi! 👋 I am currently learning about this website. How can I help you today?';
+  const pages = kb.pages || [];
+  
+  // Look for service/about pages if asking about services
+  if (qLower.includes('service') || qLower.includes('what do you do') || qLower.includes('offer') || qLower.includes('help me with')) {
+    const servicePage = pages.find((p) => p.text && (p.url.includes('service') || p.url.includes('about') || p.title.toLowerCase().includes('service')));
+    if (servicePage && servicePage.text.length > 30) {
+      return servicePage.text.slice(0, 600) + '...\n\nWould you like to know more about any specific service?';
+    }
   }
-  const hits = indexer.search(kb.chunks, question, 1);
-  if (!hits.length) {
-    return 'I would love to help with that! Feel free to leave your contact info or click "Talk to a human" to connect with our support team!';
+
+  if (kb.chunks && (kb.chunkCount || (kb.chunks.docs && kb.chunks.docs.length))) {
+    const hits = indexer.search(kb.chunks, question, 2);
+    if (hits.length) {
+      return hits.map((h) => h.text).join('\n\n');
+    }
   }
-  const top = hits[0];
-  return top.text;
+
+  // Fallback using any available page content
+  if (pages.length && pages[0].text) {
+    return pages[0].text.slice(0, 500) + '...\n\nIs there anything specific you would like to know more about?';
+  }
+
+  return "We offer complete digital and web services! Feel free to leave your contact info or click 'Talk to a human' so our team can help you directly!";
 }
 
 async function ask(siteId, siteName, question, context, history, preferLocal = false) {

@@ -226,41 +226,40 @@
     if (leadDone) { if (onComplete) onComplete(); return; }
     var card = document.createElement('div');
     card.className = 'aichat-msg aichat-bot';
-    card.style.background = '#eef2ff';
-    card.style.borderColor = '#c7d2fe';
-    card.style.padding = '12px';
+    card.style.background = '#ffffff';
+    card.style.border = '1px solid #e5e7eb';
+    card.style.borderRadius = '12px';
+    card.style.padding = '14px';
+    card.style.boxShadow = '0 4px 12px rgba(0,0,0,0.06)';
     card.innerHTML =
-      '<div style="font-weight:600;margin-bottom:6px;color:#1e1b4b;font-size:13px">📧 Leave your email to receive updates & connect:</div>' +
-      '<div style="display:flex;flex-direction:column;gap:6px;margin-top:6px">' +
-        '<input type="text" class="tidio-name" placeholder="Your name (optional)" style="padding:7px 10px;border:1px solid #c7d2fe;border-radius:6px;font-size:13px;outline:none">' +
-        '<input type="email" class="tidio-email" placeholder="Your email *" style="padding:7px 10px;border:1px solid #c7d2fe;border-radius:6px;font-size:13px;outline:none">' +
-        '<div style="display:flex;gap:6px;margin-top:2px;align-items:center">' +
-          '<button class="tidio-submit" style="flex:1;background:' + themeColor + ';color:#fff;border:none;border-radius:6px;padding:7px;font-size:12px;cursor:pointer;font-weight:600">Submit</button>' +
-          '<button class="tidio-skip" style="background:none;border:none;color:#6b7280;font-size:11px;cursor:pointer;padding:0 4px">Skip</button>' +
+      '<div style="font-weight:700;margin-bottom:6px;color:#111827;font-size:14px">Please introduce yourself:</div>' +
+      '<div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">' +
+        '<input type="email" class="tidio-email" placeholder="Enter your email..." style="padding:9px 12px;border:1px solid #d1d5db;border-radius:8px;font-size:13.5px;outline:none;width:100%">' +
+        '<div style="display:flex;gap:8px;margin-top:4px;align-items:center">' +
+          '<button class="tidio-submit" style="flex:1;background:' + themeColor + ';color:#fff;border:none;border-radius:8px;padding:9px;font-size:13px;cursor:pointer;font-weight:600">Send</button>' +
+          '<button class="tidio-skip" style="background:none;border:none;color:#6b7280;font-size:12px;cursor:pointer;padding:0 6px">Skip</button>' +
         '</div>' +
       '</div>';
     msgsEl.appendChild(card);
     msgsEl.scrollTop = msgsEl.scrollHeight;
 
-    var nameIn = card.querySelector('.tidio-name');
     var emailIn = card.querySelector('.tidio-email');
     var submitBtn = card.querySelector('.tidio-submit');
     var skipBtn = card.querySelector('.tidio-skip');
 
     submitBtn.onclick = function () {
       var em = emailIn.value.trim();
-      var nm = nameIn.value.trim() || 'Visitor';
       if (!em || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) {
         emailIn.style.borderColor = '#ef4444';
         return;
       }
-      card.innerHTML = '<i>✓ Email saved! Connecting you now...</i>';
+      card.innerHTML = '<i>✓ Thanks! Connecting you now...</i>';
       leadDone = true;
       try { localStorage.setItem('aichat_lead_done', '1'); } catch (e) {}
       fetch(server + '/api/lead', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-Site-Id': siteId },
-        body: JSON.stringify({ sessionId: sessionId, siteId: siteId, name: nm, email: em })
+        body: JSON.stringify({ sessionId: sessionId, siteId: siteId, name: em.split('@')[0], email: em })
       }).catch(function () {});
       if (onComplete) onComplete();
     };
@@ -318,30 +317,41 @@
     ws.onmessage = function (ev) {
       var msg;
       try { msg = JSON.parse(ev.data); } catch (e) { return; }
-      if (msg.type === 'bot-msg') {
-        if (msg.text !== lastBotText) { lastBotText = msg.text; addMsg(msg.text, 'bot'); }
-      } else if (msg.type === 'agent-msg') {
-        if (!humanOnline) { humanOnline = true; setHumanStatus(); }
-        addMsg(msg.text, 'agent');
+      if (msg.type === 'agent-joined') {
+        humanOnline = true;
+        statusEl.textContent = 'Agent connected';
+        addMsg('A live support agent has joined the conversation.', 'agent');
+      } else if (msg.type === 'agent-message') {
+        if (msg.text && msg.text !== lastBotText) {
+          lastBotText = msg.text;
+          addMsg(msg.text, 'agent');
+        }
+      } else if (msg.type === 'bot-reply') {
+        if (msg.text && msg.text !== lastBotText) {
+          lastBotText = msg.text;
+          addMsg(msg.text, 'bot');
+        }
       }
     };
   }
 
-  function setHumanStatus() {
-    statusEl.textContent = humanOnline ? 'Live: agent online' : 'Online';
-  }
-
-  btn.addEventListener('click', function () {
-    var has = widget.classList.toggle('open');
-    btn.innerHTML = has ? iconClose : iconChat;
-    if (has) {
-      openWs();
-      if (!msgsEl.querySelector('.aichat-msg')) {
-        addBot(remoteGreeting || cfg.greeting || 'Hi there! 👋 How can I help you today?');
+  function toggle() {
+    var isOpen = widget.classList.contains('open');
+    if (isOpen) {
+      widget.classList.remove('open');
+      btn.innerHTML = iconChat;
+    } else {
+      widget.classList.add('open');
+      btn.innerHTML = iconClose;
+      if (!ws) openWs();
+      if (!msgsEl.children.length) {
+        addBot(remoteGreeting || cfg.greeting || 'Hi there 👋 We are currently offline, but if you need any assistance, feel free to ask. We will reply as soon as possible.');
         quickReplies();
       }
     }
-  });
+  }
+
+  btn.onclick = toggle;
   widget.querySelector('.aichat-close').onclick = function () {
     widget.classList.remove('open');
     btn.innerHTML = iconChat;
@@ -357,9 +367,9 @@
       headers: { 'Content-Type': 'application/json', 'X-Site-Id': siteId },
       body: JSON.stringify({ sessionId: sessionId, siteId: siteId })
     }).then(function (r) { return r.json(); }).then(function (d) {
-      addBot(d.humanOnline ? 'A human agent has joined. 👨‍💼' : 'Our team has been notified! They will reply as soon as possible.');
+      addBot(d.humanOnline ? 'A human agent has joined the chat. 👨‍💼' : "Currently, the team is unavailable, so I can't connect you. 😔 I've passed along your message to our team, and they will contact you as soon as possible.");
     }).catch(function () {
-      addBot('Our team has been notified! They will reply as soon as possible.');
+      addBot("Currently, the team is unavailable, so I can't connect you. 😔 I've passed along your message to our team, and they will contact you as soon as possible.");
     });
   }
 
