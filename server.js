@@ -325,30 +325,107 @@ app.get('/api/admin/sites', requireAuth, requireAdmin, (req, res) => {
 });
 
 /* ---------- helpers ---------- */
-// Optional lead email via nodemailer (lazy-loaded; only if SMTP is configured).
+function sendHtmlEmail(to, subject, htmlBody, textBody) {
+  let nodemailer;
+  try { nodemailer = require('nodemailer'); } catch { console.warn('[mail] nodemailer not installed'); return; }
+
+  let transporter;
+  if (config.mail.host) {
+    transporter = nodemailer.createTransport({
+      host: config.mail.host, port: config.mail.port, secure: config.mail.secure,
+      auth: config.mail.user ? { user: config.mail.user, pass: config.mail.pass } : undefined
+    });
+  } else {
+    // Sendmail (PHP mail() equivalent on Linux VPS)
+    transporter = nodemailer.createTransport({
+      sendmail: true,
+      newline: 'unix',
+      path: '/usr/sbin/sendmail'
+    });
+  }
+
+  transporter.sendMail({
+    from: config.mail.from || 'AI ChatBot <noreply@divafits.com>',
+    to,
+    subject,
+    text: textBody,
+    html: htmlBody
+  }).then(() => console.log('[mail] Email sent to:', to))
+    .catch((e) => console.warn('[mail] Send failed:', e.message));
+}
+
 function fireLeadEmail(siteId, lead) {
   const site = store.getSite(siteId);
-  if (!config.mail.host) return;
-  let to = config.mail.to || (site && site.owner_id ? (store.getUserById(site.owner_id) || {}).email : '');
+  const siteName = (site && site.name) || siteId;
+  const ownerEmail = site && site.owner_id ? (store.getUserById(site.owner_id) || {}).email : '';
+  const to = config.mail.to || ownerEmail || 'officialusamano1@gmail.com';
   if (!to) return;
-  let nodemailer;
-  try { nodemailer = require('nodemailer'); } catch { console.warn('[mail] nodemailer not installed. Run: npm install nodemailer'); return; }
-  const transporter = nodemailer.createTransport({
-    host: config.mail.host, port: config.mail.port, secure: config.mail.secure,
-    auth: config.mail.user ? { user: config.mail.user, pass: config.mail.pass } : undefined
-  });
-  const text =
-    `A new lead was captured on your site "${site.name || siteId}".\n\n` +
-    `Name:    ${lead.name}\nEmail:   ${lead.email}\n` +
-    (lead.phone ? `Phone:   ${lead.phone}\n` : '') +
-    (lead.message ? `Message: ${lead.message}\n` : '') +
-    `\nView it in your dashboard: ${config.publicUrl}/dashboard\n`;
-  transporter.sendMail({
-    from: config.mail.from,
-    to,
-    subject: config.mail.subject + ` — ${lead.name}`,
-    text
-  }).catch((e) => console.warn('[mail] send failed:', e.message));
+
+  const subject = `📩 New Lead Inquiry on ${siteName}: ${lead.name}`;
+  const text = `New Lead on ${siteName}\nName: ${lead.name}\nEmail: ${lead.email}\nPhone: ${lead.phone || 'N/A'}\nMessage: ${lead.message || 'N/A'}`;
+  const html = `
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f5f7; padding: 20px;">
+      <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+        <div style="background: linear-gradient(135deg, #2563eb, #7c3aed); padding: 20px; color: #ffffff;">
+          <h2 style="margin: 0; font-size: 20px;">📩 New Lead Captured</h2>
+          <p style="margin: 4px 0 0; opacity: 0.9; font-size: 13px;">Website: ${siteName}</p>
+        </div>
+        <div style="padding: 20px;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr style="background-color: #f9fafb;">
+              <td style="padding: 10px; border: 1px solid #e5e7eb; font-weight: bold; width: 120px;">Name:</td>
+              <td style="padding: 10px; border: 1px solid #e5e7eb;">${lead.name}</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px; border: 1px solid #e5e7eb; font-weight: bold;">Email:</td>
+              <td style="padding: 10px; border: 1px solid #e5e7eb;"><a href="mailto:${lead.email}">${lead.email}</a></td>
+            </tr>
+            <tr style="background-color: #f9fafb;">
+              <td style="padding: 10px; border: 1px solid #e5e7eb; font-weight: bold;">Phone:</td>
+              <td style="padding: 10px; border: 1px solid #e5e7eb;">${lead.phone || '—'}</td>
+            </tr>
+            <tr>
+              <td style="padding: 10px; border: 1px solid #e5e7eb; font-weight: bold;">Message:</td>
+              <td style="padding: 10px; border: 1px solid #e5e7eb;">${lead.message || '—'}</td>
+            </tr>
+          </table>
+          <div style="margin-top: 20px; text-align: center;">
+            <a href="${config.publicUrl}/dashboard" style="background: #2563eb; color: #ffffff; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">View in Dashboard</a>
+          </div>
+        </div>
+      </div>
+    </body>
+  `;
+  sendHtmlEmail(to, subject, html, text);
+}
+
+function fireEscalateEmail(siteId, sid) {
+  const site = store.getSite(siteId);
+  const siteName = (site && site.name) || siteId;
+  const ownerEmail = site && site.owner_id ? (store.getUserById(site.owner_id) || {}).email : '';
+  const to = config.mail.to || ownerEmail || 'officialusamano1@gmail.com';
+  if (!to) return;
+
+  const subject = `🚨 Live Support Request on ${siteName}`;
+  const text = `Live chat requested on ${siteName} (Session: ${sid}). Open dashboard: ${config.publicUrl}/dashboard`;
+  const html = `
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f5f7; padding: 20px;">
+      <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+        <div style="background: linear-gradient(135deg, #dc2626, #9333ea); padding: 20px; color: #ffffff;">
+          <h2 style="margin: 0; font-size: 20px;">🚨 Live Support Requested!</h2>
+          <p style="margin: 4px 0 0; opacity: 0.9; font-size: 13px;">Website: ${siteName}</p>
+        </div>
+        <div style="padding: 20px;">
+          <p>A visitor on <b>${siteName}</b> clicked <b>"Talk to a human"</b>!</p>
+          <p><b>Session ID:</b> <code>${sid}</code></p>
+          <div style="margin-top: 20px; text-align: center;">
+            <a href="${config.publicUrl}/dashboard" style="background: #dc2626; color: #ffffff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block;">Join Live Chat Now</a>
+          </div>
+        </div>
+      </div>
+    </body>
+  `;
+  sendHtmlEmail(to, subject, html, text);
 }
 
 function fireWebhook(siteId, lead) {

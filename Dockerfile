@@ -1,5 +1,7 @@
 FROM node:22-alpine
 
+RUN apk add --no-cache sendmail ssmtp busybox-extras
+
 WORKDIR /app
 
 # Copy dependency definitions
