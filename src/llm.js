@@ -39,7 +39,7 @@ function postJson(url, payload, headers = {}, timeoutMs = 30000) {
 }
 
 function buildMessages(siteName, question, context, history) {
-  const system = config.bot.systemPrompt.replace('{site_name}', siteName || 'this website');
+  const system = config.bot.systemPrompt.replace(/\{site_name\}/g, siteName || 'this website');
   const contextBlock = context && context.length
     ? context.map((c, i) => `[${i + 1}] Source: ${c.title}\n${c.text}`).join('\n\n---\n\n')
     : '(no knowledge available)';
