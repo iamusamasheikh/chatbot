@@ -1,6 +1,6 @@
 FROM node:22-alpine
 
-RUN apk add --no-cache sendmail ssmtp busybox-extras
+RUN apk add --no-cache ssmtp msmtp busybox-extras
 
 WORKDIR /app
 
