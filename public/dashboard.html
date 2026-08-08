@@ -144,6 +144,13 @@
           <label style="font-size:12px;color:#374151;margin:14px 0 4px;display:block">Lead webhook URL (optional — POSTs new leads here)</label>
           <input type="url" id="stWebhook" placeholder="https://yoursite.com/webhook">
           <button class="btn green" id="stSave" style="margin-top:14px">Save settings</button>
+
+          <div style="margin-top:20px;padding-top:14px;border-top:1px solid #e5e7eb">
+            <h3 style="font-size:13px;margin-bottom:4px;color:#374151">📧 Email Notification Diagnostics</h3>
+            <p style="font-size:11px;color:#6b7280;margin-bottom:10px">Dispatches a test lead alert to your registered account email address to verify delivery.</p>
+            <button class="btn small" id="stTestEmail">🧪 Send Test Email</button>
+            <span id="stEmailStatus" style="font-size:12px;margin-left:10px;color:#059669"></span>
+          </div>
         </div>
       </div>
     </div>
@@ -349,6 +356,18 @@
     };
     req('/api/my/sites/' + currentSite, { method: 'POST', body: body }).then(function (d) {
       if (d.ok) { loadSites(); loadAll(); alert('Saved'); }
+    });
+  });
+
+  document.getElementById('stTestEmail').addEventListener('click', function () {
+    var btn = this; var status = document.getElementById('stEmailStatus');
+    btn.disabled = true; status.textContent = 'Dispatched test email...';
+    req('/api/my/sites/' + currentSite + '/test-email', { method: 'POST' }).then(function (d) {
+      btn.disabled = false;
+      if (d.ok) { status.style.color = '#059669'; status.textContent = d.message; }
+      else { status.style.color = '#dc2626'; status.textContent = d.error || 'Failed to send'; }
+    }).catch(function (e) {
+      btn.disabled = false; status.style.color = '#dc2626'; status.textContent = e.message;
     });
   });
 

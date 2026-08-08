@@ -298,6 +298,37 @@ app.get('/api/my/sites/:siteId/verify-embed', requireAuth, requireSiteOwner, asy
   }
 });
 
+app.post('/api/my/sites/:siteId/test-email', requireAuth, requireSiteOwner, (req, res) => {
+  const site = store.getSite(req.siteId);
+  const user = req.user;
+  const to = user.email || 'officialusamano1@gmail.com';
+  const siteName = (site && site.name) || req.siteId;
+
+  const subject = `🧪 Test Email from AI Support Chatbot (${siteName})`;
+  const text = `This is a test notification from your AI Support Chatbot for website "${siteName}". If you received this, your email notifications are working perfectly!`;
+  const html = `
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; background-color: #f4f5f7; padding: 20px;">
+      <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+        <div style="background: linear-gradient(135deg, #10b981, #059669); padding: 20px; color: #ffffff;">
+          <h2 style="margin: 0; font-size: 20px;">🧪 Test Email Successful!</h2>
+          <p style="margin: 4px 0 0; opacity: 0.9; font-size: 13px;">Website: ${siteName}</p>
+        </div>
+        <div style="padding: 20px;">
+          <p>Great news! Your AI Chatbot notification system is working 100% properly for <b>${siteName}</b>.</p>
+          <p>When visitors submit lead details or request Live Support, alerts will be sent to <b>${to}</b>.</p>
+        </div>
+      </div>
+    </body>
+  `;
+
+  try {
+    sendHtmlEmail(to, subject, html, text, { name: user.name || 'Site Owner', email: to });
+    res.json({ ok: true, message: `Test email dispatched to ${to}! Please check your Inbox and Spam folder.` });
+  } catch (e) {
+    res.status(500).json({ error: 'Failed to send test email: ' + e.message });
+  }
+});
+
 app.get('/api/my/sites/:siteId/train-status', requireAuth, requireSiteOwner, (req, res) => {
   const j = jobs.get(req.siteId);
   res.json(j ? j : { running: false, done: 0, total: 0, page: 0, error: null });
