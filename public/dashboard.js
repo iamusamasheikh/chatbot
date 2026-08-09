@@ -134,12 +134,15 @@
       if (!keys.length) { box.innerHTML = '<div class="empty">No conversations yet.</div>'; return; }
       box.innerHTML = keys.map(function (k) {
         var c = d.conversations[k];
-        var msgs = c.messages.map(function (m) {
+        var msgs = (c.messages || []).map(function (m) {
           var cls = m.sender === 'user' ? 'user' : m.sender === 'agent' ? 'agent' : '';
           return '<div class="msg ' + cls + '"><div class="meta">' + esc(m.sender) + ' · ' + esc(new Date(m.at).toLocaleString()) + '</div>' + esc(m.text) + '</div>';
         }).join('');
         return '<div style="margin-bottom:16px;padding:12px;border:1px solid #e2e8f0;border-radius:10px"><b>Session ' + esc(k) + '</b> <span class="empty">(' + esc(new Date(c.startedAt).toLocaleString()) + ')</span>' + msgs + '</div>';
       }).join('');
+    }).catch(function () {
+      var box = document.getElementById('convBox');
+      if (box) box.innerHTML = '<div class="empty">No conversations yet.</div>';
     });
 
     req('/api/my/sites/' + currentSite + '/leads').then(function (d) {
@@ -150,6 +153,9 @@
         d.leads.map(function (l) {
           return '<tr style="border-bottom:1px solid #f1f5f9"><td style="padding:8px"><b>' + esc(l.name) + '</b></td><td><a href="mailto:' + esc(l.email) + '">' + esc(l.email) + '</a></td><td>' + esc(l.phone) + '</td><td>' + esc(l.message) + '</td><td>' + esc(new Date(l.at).toLocaleString()) + '</td></tr>';
         }).join('') + '</table>';
+    }).catch(function () {
+      var box = document.getElementById('leadsBox');
+      if (box) box.innerHTML = '<div class="empty">No leads captured yet.</div>';
     });
 
     document.getElementById('exportCsv').href = '/api/my/sites/' + currentSite + '/leads/export';

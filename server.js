@@ -262,7 +262,7 @@ app.post('/api/my/sites/:siteId', requireAuth, requireSiteOwner, (req, res) => {
 });
 
 app.get('/api/my/sites/:siteId/summary', requireAuth, requireSiteOwner, (req, res) => res.json(summary(req.siteId)));
-app.get('/api/my/sites/:siteId/chats', requireAuth, requireSiteOwner, (req, res) => res.json(store.getChats(req.siteId)));
+app.get(['/api/my/sites/:siteId/chats', '/api/my/sites/:siteId/conversations'], requireAuth, requireSiteOwner, (req, res) => res.json(store.getChats(req.siteId)));
 app.get('/api/my/sites/:siteId/leads', requireAuth, requireSiteOwner, (req, res) => res.json(store.getLeads(req.siteId)));
 
 app.get('/api/my/sites/:siteId/leads/export', requireAuth, requireSiteOwner, (req, res) => {
