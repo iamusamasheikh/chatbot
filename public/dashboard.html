@@ -275,9 +275,9 @@
         el.addEventListener('click', function () {
           currentSite = el.getAttribute('data-id');
           loadSites();
-          loadAll();
         });
       });
+      loadAll();
     }).catch(function () {
       document.getElementById('noSite').style.display = 'block';
       document.getElementById('workspace').style.display = 'none';
@@ -333,9 +333,9 @@
       document.getElementById('ovKbInfo').textContent = d.kb.siteUrl ? (d.kb.siteName + ' — ' + d.kb.siteUrl) : 'Train the bot so it can answer about your site.';
 
       var scriptOrigin = location.origin;
-      var code = '&lt;script&gt;window.AIChatConfig={siteId:"' + esc(d.siteId) + '",server:"' + esc(scriptOrigin) + '"};&lt;/script&gt;\n' +
-                 '&lt;script src="' + esc(scriptOrigin) + '/widget.js" defer&gt;&lt;/script&gt;';
-      document.getElementById('embedCode').innerHTML = code;
+      var code = '<script>window.AIChatConfig={siteId:"' + d.siteId + '",server:"' + scriptOrigin + '"};</script>\n' +
+                 '<script src="' + scriptOrigin + '/widget.js" defer></script>';
+      document.getElementById('embedCode').textContent = code;
 
       document.getElementById('trainUrl').value = d.siteUrl || '';
       document.getElementById('stName').value = d.siteName || '';
