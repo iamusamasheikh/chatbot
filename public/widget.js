@@ -110,12 +110,14 @@
       }
       return;
     }
-    if (document.getElementById('aichat-btn-root')) return;
-    btn.id = 'aichat-btn-root';
-    document.body.appendChild(btn);
-    document.body.appendChild(widget);
+    if (!document.getElementById('aichat-btn-root')) {
+      btn.id = 'aichat-btn-root';
+      document.body.appendChild(btn);
+      document.body.appendChild(widget);
+    }
   }
   mount();
+  setInterval(mount, 3000);
 
   var msgsEl = widget.querySelector('.aichat-messages');
   var actionsEl = widget.querySelector('.aichat-actions');
