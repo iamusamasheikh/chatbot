@@ -2,32 +2,37 @@
    Not required — public/widget.js injects all styles automatically.
    Link it only if you prefer keeping the widget script smaller:
      <link rel="stylesheet" href="https://your-server.com/widget.css"> */
-.aichat *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
-.aichat-btn{position:fixed;right:20px;bottom:20px;width:60px;height:60px;border-radius:50%;background:#2563eb;color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 20px rgba(37,99,235,.4);z-index:2147483000;transition:transform .15s}
-.aichat-btn:hover{transform:scale(1.06)}
-.aichat-widget{position:fixed;right:20px;bottom:90px;width:360px;max-width:calc(100vw - 40px);height:520px;max-height:calc(100vh - 120px);background:#fff;border-radius:16px;overflow:hidden;display:none;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,.25);z-index:2147483000}
-.aichat-widget.open{display:flex}
-.aichat-header{background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px}
+.aichat *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif}
+.aichat-btn{position:fixed !important;right:20px !important;bottom:20px !important;width:60px !important;height:60px !important;border-radius:50% !important;background:linear-gradient(135deg,#2563eb,#7c3aed) !important;color:#fff !important;border:none !important;cursor:pointer !important;display:flex !important;align-items:center !important;justify-content:center !important;box-shadow:0 8px 25px rgba(37,99,235,.45) !important;z-index:2147483647 !important;transition:transform .2s ease,box-shadow .2s ease !important}
+.aichat-btn:hover{transform:scale(1.08) rotate(-3deg) !important;box-shadow:0 12px 30px rgba(37,99,235,.6) !important}
+.aichat-widget{position:fixed !important;right:20px !important;bottom:90px !important;width:360px !important;max-width:calc(100vw - 30px) !important;height:530px !important;max-height:calc(100vh - 110px) !important;background:#ffffff !important;border-radius:16px !important;overflow:hidden !important;display:none;flex-direction:column !important;box-shadow:0 12px 40px rgba(0,0,0,.25) !important;z-index:2147483647 !important;color:#0f172a !important}
+.aichat-widget.open{display:flex !important}
+.aichat-header{background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff !important;padding:14px 16px;display:flex;align-items:center;gap:10px}
 .aichat-avatar{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.25);display:flex;align-items:center;justify-content:center;font-size:18px}
-.aichat-header-info{flex:1;min-width:0}.aichat-name{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.aichat-status{font-size:12px;opacity:.9}
-.aichat-close{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;line-height:1}
-.aichat-body{flex:1;overflow-y:auto;background:#f7f8fa;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:0}
-.aichat-msg{max-width:82%;padding:9px 12px;border-radius:14px;font-size:14px;line-height:1.45;white-space:pre-wrap;word-wrap:break-word}
-.aichat-bot{background:#fff;border:1px solid #e5e7eb;border-bottom-left-radius:4px;align-self:flex-start}
-.aichat-user{background:#2563eb;color:#fff;border-bottom-right-radius:4px;align-self:flex-end}
-.aichat-agent{background:#065f46;color:#fff;border-bottom-left-radius:4px;align-self:flex-start}
-.aichat-typing{color:#999;font-style:italic}
-.aichat-src{font-size:11px;color:#6b7280;margin-top:4px}
-.aichat-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:2px}
-.aichat-actions button{background:#eef2ff;border:1px solid #c7d2fe;color:#4338ca;border-radius:20px;padding:6px 12px;font-size:13px;cursor:pointer}
-.aichat-actions button:hover{background:#e0e7ff}
-.aichat-input{display:flex;border-top:1px solid #ececec;padding:10px;gap:8px;background:#fff}
-.aichat-input input{flex:1;border:1px solid #e5e7eb;border-radius:20px;padding:9px 14px;font-size:14px;outline:none;min-width:0}
-.aichat-input input:focus{border-color:#2563eb}
-.aichat-input button{background:#2563eb;color:#fff;border:none;border-radius:50%;width:38px;height:38px;cursor:pointer;font-size:18px;flex:0 0 auto}
-.aichat-input button:disabled{background:#9ca3af;cursor:not-allowed}
-.aichat-lead{padding:10px;display:none;flex-direction:column;gap:8px;background:#fff;border-top:1px solid #ececec}
-.aichat-lead input{border:1px solid #d1d7e0;border-radius:10px;padding:9px 12px;font-size:14px;outline:none}
-.aichat-lead input:focus{border-color:#2563eb}
-.aichat-lead button{background:#10b981;color:#fff;border:none;border-radius:10px;padding:10px;font-size:14px;cursor:pointer;font-weight:600}
-.aichat-powered{text-align:center;font-size:10px;color:#9ca3af;padding:4px;background:#fff}
+.aichat-header-info{flex:1;min-width:0}.aichat-name{font-weight:700;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#fff !important}.aichat-status{font-size:12px;opacity:.9;color:#fff !important}
+.aichat-close{background:none;border:none;color:#fff !important;font-size:22px;cursor:pointer;line-height:1}
+.aichat-body{flex:1;overflow-y:auto;background:#f8fafc !important;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:0}
+.aichat-msg{max-width:85%;padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.5;white-space:pre-wrap;word-wrap:break-word}
+.aichat-bot{background:#ffffff !important;color:#0f172a !important;border:1px solid #e2e8f0 !important;border-bottom-left-radius:4px !important;align-self:flex-start !important;box-shadow:0 1px 3px rgba(0,0,0,0.04) !important}
+.aichat-bot *{color:#0f172a !important}
+.aichat-bot a{color:#2563eb !important;text-decoration:underline}
+.aichat-user{background:#2563eb !important;color:#ffffff !important;border-bottom-right-radius:4px !important;align-self:flex-end !important}
+.aichat-user *{color:#ffffff !important}
+.aichat-agent{background:#065f46 !important;color:#ffffff !important;border-bottom-left-radius:4px !important;align-self:flex-start !important}
+.aichat-agent *{color:#ffffff !important}
+.aichat-typing{color:#64748b !important;font-style:italic}
+.aichat-src{font-size:11px;color:#64748b !important;margin-top:4px}
+.aichat-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:4px}
+.aichat-actions button{background:#eef2ff !important;border:1px solid #c7d2fe !important;color:#4338ca !important;border-radius:20px;padding:6px 14px;font-size:12.5px;cursor:pointer;font-weight:600}
+.aichat-actions button:hover{background:#e0e0ff !important}
+.aichat-input{display:flex;border-top:1px solid #e2e8f0;padding:10px;gap:8px;background:#ffffff !important}
+.aichat-input input{flex:1;border:1px solid #cbd5e1 !important;border-radius:20px;padding:9px 14px;font-size:14px;outline:none;min-width:0;background:#ffffff !important;color:#0f172a !important}
+.aichat-input input:focus{border-color:#2563eb !important}
+.aichat-input button{background:#2563eb !important;color:#ffffff !important;border:none;border-radius:50%;width:38px;height:38px;cursor:pointer;font-size:18px;flex:0 0 auto}
+.aichat-input button:disabled{background:#9ca3af !important;cursor:not-allowed}
+.aichat-lead{padding:12px;display:none;flex-direction:column;gap:8px;background:#ffffff !important;border-top:1px solid #e2e8f0}
+.aichat-lead input{border:1px solid #cbd5e1 !important;border-radius:10px;padding:9px 12px;font-size:14px;outline:none;background:#ffffff !important;color:#0f172a !important}
+.aichat-lead input:focus{border-color:#2563eb !important}
+.aichat-lead button{background:#10b981 !important;color:#ffffff !important;border:none;border-radius:10px;padding:10px;font-size:14px;cursor:pointer;font-weight:600}
+.aichat-powered{text-align:center;font-size:11px;color:#64748b !important;padding:6px 10px;background:#f8fafc !important;border-top:1px solid #f1f5f9;font-weight:500;letter-spacing:0.5px}
+.aichat-powered a{color:#334155 !important;text-decoration:none;font-weight:700}
