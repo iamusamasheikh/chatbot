@@ -122,7 +122,28 @@ function localAnswer(question, siteId) {
   return "We offer complete digital and web services! Feel free to leave your contact info or click 'Talk to a human' so our team can help you directly!";
 }
 
+function isExplicitOffTopic(question) {
+  const q = (question || '').toLowerCase().trim();
+  const keywords = [
+    'weather', 'temperature', 'forecast', 'rain', 'climate', 'celsius', 'fahrenheit', 'hot today', 'cold today',
+    'recipe', 'ingredients', 'how to cook',
+    'sports', 'cricket', 'football', 'match score', 'ipl', 'psl', 'world cup',
+    'who is president', 'prime minister', 'capital of', 'tell me a joke', 'write a poem',
+    'married', 'single', 'girlfriend', 'boyfriend', 'your age', 'how old are you', 'where do you live',
+    'solve math', 'calculate', 'python code', 'write a script'
+  ];
+  return keywords.some((kw) => q.includes(kw));
+}
+
 async function ask(siteId, siteName, question, context, history, preferLocal = false) {
+  const name = siteName || 'our company';
+  if (isExplicitOffTopic(question)) {
+    return {
+      answer: `We are dedicated to helping you with our services at ${name}. I can't answer off-topic questions, but feel free to ask me anything about our business!`,
+      mode: 'ai'
+    };
+  }
+
   const messages = buildMessages(siteName, question, context, history);
   if (preferLocal) return { answer: localAnswer(question, siteId), mode: 'local' };
 
