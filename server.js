@@ -582,8 +582,13 @@ function startAutoTrainer() {
   };
   setTimeout(run, 10000);
   setInterval(run, minutes * 60000);
-  console.log(`[auto-train] enabled every ${minutes} min`);
 }
+
+// Express global error handler (ensures API errors always return JSON instead of HTML)
+app.use((err, req, res, next) => {
+  console.error('[server error]', err);
+  res.status(500).json({ error: err.message || 'Internal server error' });
+});
 
 const server = app.listen(config.port, () => {
   hub.attach(server, { verifyToken });

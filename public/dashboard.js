@@ -16,7 +16,16 @@
     }
     return fetch(path, opts).then(function (r) {
       if (r.status === 401) { location.href = '/login'; throw new Error('unauth'); }
-      return r.json();
+      var contentType = r.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        return r.text().then(function () {
+          throw new Error('Server returned an invalid response (HTTP ' + r.status + ')');
+        });
+      }
+      return r.json().then(function (d) {
+        if (!r.ok) throw new Error((d && d.error) || 'HTTP error ' + r.status);
+        return d;
+      });
     });
   }
 

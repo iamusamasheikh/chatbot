@@ -70,6 +70,32 @@ const store = {
         next.knowledge == null ? null : JSON.stringify(next.knowledge),
         orNull(next.trained_at), orNull(next.theme_color), orNull(next.webhook_url), s.id);
   },
+  upsertSite(site) {
+    const id = sanitizeSiteId(site.id);
+    const existing = this.getSite(id);
+    if (existing) {
+      db.prepare('UPDATE sites SET name = COALESCE(?, name), site_url = COALESCE(?, site_url), greeting = COALESCE(?, greeting) WHERE id = ?')
+        .run(orNull(site.name), orNull(site.siteUrl), orNull(site.greeting), id);
+    } else {
+      db.prepare('INSERT INTO sites (id, owner_id, name, site_url, greeting, created_at) VALUES (?,?,?,?,?,?)')
+        .run(id, orNull(site.ownerId), orNull(site.name), orNull(site.siteUrl), orNull(site.greeting), new Date().toISOString());
+    }
+    return id;
+  },
+  updateSiteSettings(siteId, settings) {
+    const s = this.getSite(siteId);
+    if (!s) return;
+    db.prepare('UPDATE sites SET name=?, site_url=?, greeting=?, theme_color=?, webhook_url=? WHERE id=?')
+      .run(
+        orNull(settings.name !== undefined ? settings.name : s.name),
+        orNull(settings.siteUrl !== undefined ? settings.siteUrl : s.site_url),
+        orNull(settings.greeting !== undefined ? settings.greeting : s.greeting),
+        orNull(settings.themeColor !== undefined ? settings.themeColor : s.theme_color),
+        orNull(settings.webhookUrl !== undefined ? settings.webhookUrl : s.webhook_url),
+        s.id
+      );
+  },
+
 
   /* ================= KNOWLEDGE ================= */
   getKnowledge(siteId) {
