@@ -3,25 +3,27 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Super Admin · AI Chat</title>
+<title>Super Admin · Divafits AI</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,Segoe UI,Roboto,sans-serif}
   body{background:#f5f6fa;color:#111;font-size:14px}
   header{background:#111827;color:#fff;padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
-  .wrap{max-width:1000px;margin:24px auto;padding:0 16px}
+  .wrap{max-width:1100px;margin:24px auto;padding:0 16px}
   .panel{background:#fff;border:1px solid #e5e7eb;border-radius:12px;padding:16px;margin-bottom:16px}
   .panel h2{font-size:15px;margin-bottom:12px}
   table{width:100%;border-collapse:collapse;font-size:13px}
-  th,td{text-align:left;padding:8px;border-bottom:1px solid #eee}
+  th,td{text-align:left;padding:10px 8px;border-bottom:1px solid #eee}
   th{color:#6b7280;font-weight:600}
   .badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600}
-  .ok{background:#d1fae5;color:#065f46}.no{background:#fee2e2;color:#991b1b}.warn{background:#fef3c7;color:#92400e}
+  .ok{background:#d1fae5;color:#065f46}.no{background:#fee2e2;color:#991b1b}.warn{background:#fef3c7;color:#92400e}.gold{background:#fef3c7;color:#b45309}
+  .btn{background:#2563eb;color:#fff;border:none;border-radius:6px;padding:5px 10px;font-size:12px;cursor:pointer;font-weight:600}
+  .btn.green{background:#10b981}.btn.gray{background:#6b7280}
   a{color:#2563eb}
 </style>
 </head>
 <body>
 <header>
-  <span>🛡️ Super Admin · AI Chat</span>
+  <span>🛡️ Super Admin · Divafits AI</span>
   <div>
     <a href="/dashboard" style="color:#fff;margin-right:12px">My dashboard</a>
     <button id="logout" style="background:none;border:1px solid #666;color:#fff;border-radius:6px;padding:5px 10px;cursor:pointer">Logout</button>
@@ -33,7 +35,7 @@
     <div id="usersBox">Loading…</div>
   </div>
   <div class="panel">
-    <h2>🌐 All sites</h2>
+    <h2>🌐 All Registered Websites & White-Label Management</h2>
     <div id="sitesBox">Loading…</div>
   </div>
 </div>
@@ -53,16 +55,51 @@
       }).join('') + '</table>';
   });
 
-  fetch('/api/admin/sites', { credentials: 'same-origin' }).then(auth).then(function (sites) {
-    document.getElementById('sitesBox').innerHTML =
-      '<table><tr><th>Site ID</th><th>Name</th><th>Website URL</th><th>Owner</th><th>KB</th><th>Sessions</th><th>Leads</th></tr>' +
-      sites.map(function (s) {
-        var urlLink = s.siteUrl ? '<a href="' + esc(s.siteUrl) + '" target="_blank" rel="noopener">' + esc(s.siteUrl) + '</a>' : '<span style="color:#999">—</span>';
-        return '<tr><td><b>' + esc(s.id) + '</b></td><td>' + esc(s.name) + '</td><td>' + urlLink + '</td><td>User #' + (s.ownerId || '—') + '</td>' +
-          '<td>' + (s.trained ? '<span class="badge ok">' + s.chunks + ' chunks</span>' : '<span class="badge no">untrained</span>') + '</td>' +
-          '<td>' + s.sessions + '</td><td>' + s.leads + '</td></tr>';
-      }).join('') + '</table>';
-  });
+  function loadSites() {
+    fetch('/api/admin/sites', { credentials: 'same-origin' }).then(auth).then(function (sites) {
+      document.getElementById('sitesBox').innerHTML =
+        '<table><tr><th>Site ID</th><th>Site Name</th><th>AI Bot Name</th><th>Owner</th><th>White-Label Access</th><th>Sessions</th><th>Leads</th><th>Actions</th></tr>' +
+        sites.map(function (s) {
+          var isWl = Boolean(s.isWhitelabel);
+          var wlStatus = isWl ? '<span class="badge ok">⭐ White-Label</span>' : '<span class="badge gold">🔒 Standard</span>';
+          var toggleBtn = isWl
+            ? '<button class="btn gray toggle-wl" data-id="' + esc(s.id) + '" data-wl="0">Revoke White-Label</button>'
+            : '<button class="btn green toggle-wl" data-id="' + esc(s.id) + '" data-wl="1">⭐ Grant White-Label</button>';
+          return '<tr>' +
+            '<td><b>' + esc(s.id) + '</b></td>' +
+            '<td>' + esc(s.name) + '</td>' +
+            '<td><span style="color:#4f46e5;font-weight:600">' + esc(s.botName || 'Divafits AI Assistant') + '</span></td>' +
+            '<td>User #' + (s.ownerId || '—') + '</td>' +
+            '<td>' + wlStatus + '</td>' +
+            '<td>' + s.sessions + '</td>' +
+            '<td>' + s.leads + '</td>' +
+            '<td>' + toggleBtn + '</td>' +
+          '</tr>';
+        }).join('') + '</table>';
+
+      document.querySelectorAll('.toggle-wl').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var id = this.getAttribute('data-id');
+          var enable = this.getAttribute('data-wl') === '1';
+          this.disabled = true;
+          this.textContent = 'Updating...';
+          fetch('/api/admin/sites/' + encodeURIComponent(id) + '/whitelabel', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ isWhitelabel: enable })
+          }).then(auth).then(function () {
+            loadSites();
+          }).catch(function (e) {
+            alert('Failed to update white-label status: ' + e.message);
+            loadSites();
+          });
+        });
+      });
+    });
+  }
+
+  loadSites();
 
   document.getElementById('logout').addEventListener('click', function () {
     fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' }).then(function () { location.href = '/login'; });

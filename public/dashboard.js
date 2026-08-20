@@ -135,6 +135,38 @@
       document.getElementById('stGreeting').value = d.greeting || '';
       document.getElementById('stColor').value = d.themeColor || '#2563eb';
       document.getElementById('stWebhook').value = d.webhookUrl || '';
+
+      // White-Label and AI Name UI state
+      var isWl = Boolean(d.isWhitelabel);
+      var wlBadge = document.getElementById('stWhitelabelBadge');
+      var wlLockedNotice = document.getElementById('stWhitelabelLockedNotice');
+      var botNameIn = document.getElementById('stBotName');
+      var hideBrandingIn = document.getElementById('stHideBranding');
+      var customBrandNameIn = document.getElementById('stCustomBrandName');
+      var customBrandUrlIn = document.getElementById('stCustomBrandUrl');
+
+      botNameIn.value = d.botName || 'Divafits AI Assistant';
+      hideBrandingIn.checked = Boolean(d.hideBranding);
+      customBrandNameIn.value = d.customBrandName || '';
+      customBrandUrlIn.value = d.customBrandUrl || '';
+
+      if (isWl) {
+        wlBadge.className = 'badge ok';
+        wlBadge.innerHTML = '⭐ White-Label Active';
+        wlLockedNotice.style.display = 'none';
+        botNameIn.disabled = false;
+        hideBrandingIn.disabled = false;
+        customBrandNameIn.disabled = false;
+        customBrandUrlIn.disabled = false;
+      } else {
+        wlBadge.className = 'badge gold';
+        wlBadge.innerHTML = '🔒 Standard Plan';
+        wlLockedNotice.style.display = 'block';
+        botNameIn.disabled = true;
+        hideBrandingIn.disabled = true;
+        customBrandNameIn.disabled = true;
+        customBrandUrlIn.disabled = true;
+      }
     });
 
     req('/api/my/sites/' + currentSite + '/conversations').then(function (d) {
@@ -215,10 +247,16 @@
       siteUrl: document.getElementById('stUrl').value.trim(),
       greeting: document.getElementById('stGreeting').value.trim(),
       themeColor: document.getElementById('stColor').value,
-      webhookUrl: document.getElementById('stWebhook').value.trim()
+      webhookUrl: document.getElementById('stWebhook').value.trim(),
+      botName: document.getElementById('stBotName').value.trim(),
+      hideBranding: document.getElementById('stHideBranding').checked,
+      customBrandName: document.getElementById('stCustomBrandName').value.trim(),
+      customBrandUrl: document.getElementById('stCustomBrandUrl').value.trim()
     };
     req('/api/my/sites/' + currentSite, { method: 'POST', body: body }).then(function (d) {
       if (d.ok) { loadSites(); loadAll(); alert('Settings saved successfully!'); }
+    }).catch(function (e) {
+      alert('Could not save settings: ' + e.message);
     });
   });
 

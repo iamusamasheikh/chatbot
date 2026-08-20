@@ -85,5 +85,10 @@ function addColumn(table, col, decl) {
 
 addColumn('sites', 'theme_color', "TEXT DEFAULT '#2563eb'");
 addColumn('sites', 'webhook_url', 'TEXT');
+addColumn('sites', 'is_whitelabel', 'INTEGER DEFAULT 0');
+addColumn('sites', 'bot_name', "TEXT DEFAULT 'Divafits AI Assistant'");
+addColumn('sites', 'hide_branding', 'INTEGER DEFAULT 0');
+addColumn('sites', 'custom_brand_name', 'TEXT');
+addColumn('sites', 'custom_brand_url', 'TEXT');
 
 module.exports = db;

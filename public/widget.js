@@ -104,7 +104,7 @@
       '<input type="email" class="lead-email" placeholder="Your email *">' +
       '<button class="lead-save">Get in touch</button>' +
     '</div>' +
-    '<div class="aichat-powered">POWERED BY <a href="https://usamasheikh.com" target="_blank" style="color:#4b5563;text-decoration:none;font-weight:700">⚡ Usama Sheikh AI</a></div>';
+    '<div class="aichat-powered">POWERED BY <a href="https://divafits.com" target="_blank" style="color:#4b5563;text-decoration:none;font-weight:700">⚡ Divafits AI</a></div>';
 
   function mount() {
     if (!document.body) {
@@ -130,7 +130,9 @@
   var sendBtn = widget.querySelector('.aichat-send');
   var leadEl = widget.querySelector('.aichat-lead');
   var statusEl = widget.querySelector('.aichat-status');
-  widget.querySelector('.aichat-name').textContent = cfg.title || 'AI Chat';
+  var poweredEl = widget.querySelector('.aichat-powered');
+  var defaultBotName = cfg.botName || cfg.title || 'Divafits AI Assistant';
+  widget.querySelector('.aichat-name').textContent = defaultBotName;
   var remoteGreeting = null;
 
   function applyTheme(color) {
@@ -145,17 +147,29 @@
     ty.textContent = '.aichat-user{background:' + themeColor + '}.aichat-input input:focus{border-color:' + themeColor + '}.aichat-right b{color:' + themeColor + '}';
   }
 
-  function initTheme() {
+  function initConfig() {
     if (!server) return;
     fetch(server + '/api/site-config?siteId=' + encodeURIComponent(siteId))
       .then(function (r) { return r.json(); })
       .then(function (c) {
         if (c.themeColor) applyTheme(c.themeColor);
         if (c.greeting && !cfg.greeting) remoteGreeting = c.greeting;
+        if (c.botName && !cfg.botName && !cfg.title) {
+          widget.querySelector('.aichat-name').textContent = c.botName;
+        }
+        if (c.isWhitelabel) {
+          if (c.hideBranding) {
+            poweredEl.style.display = 'none';
+          } else if (c.customBrandName) {
+            var brandUrl = c.customBrandUrl || '#';
+            poweredEl.innerHTML = 'POWERED BY <a href="' + escapeHtml(brandUrl) + '" target="_blank" style="color:#4b5563;text-decoration:none;font-weight:700">' + escapeHtml(c.customBrandName) + '</a>';
+            poweredEl.style.display = 'block';
+          }
+        }
       }).catch(function () {});
   }
   if (cfg.color) applyTheme(cfg.color);
-  initTheme();
+  initConfig();
 
   /* ---------- helpers ---------- */
   function escapeHtml(s) {

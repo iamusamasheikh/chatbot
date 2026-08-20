@@ -65,35 +65,46 @@ const store = {
     const s = this.getSite(siteId);
     if (!s) return;
     const next = Object.assign({}, s, fields);
-    db.prepare('UPDATE sites SET name=?, site_url=?, greeting=?, knowledge=?, trained_at=?, theme_color=?, webhook_url=? WHERE id=?')
+    db.prepare('UPDATE sites SET name=?, site_url=?, greeting=?, knowledge=?, trained_at=?, theme_color=?, webhook_url=?, is_whitelabel=?, bot_name=?, hide_branding=?, custom_brand_name=?, custom_brand_url=? WHERE id=?')
       .run(orNull(next.name), orNull(next.site_url), orNull(next.greeting),
         next.knowledge == null ? null : JSON.stringify(next.knowledge),
-        orNull(next.trained_at), orNull(next.theme_color), orNull(next.webhook_url), s.id);
+        orNull(next.trained_at), orNull(next.theme_color), orNull(next.webhook_url),
+        next.is_whitelabel ? 1 : 0, orNull(next.bot_name), next.hide_branding ? 1 : 0,
+        orNull(next.custom_brand_name), orNull(next.custom_brand_url), s.id);
   },
   upsertSite(site) {
     const id = sanitizeSiteId(site.id);
     const existing = this.getSite(id);
     if (existing) {
-      db.prepare('UPDATE sites SET name = COALESCE(?, name), site_url = COALESCE(?, site_url), greeting = COALESCE(?, greeting) WHERE id = ?')
-        .run(orNull(site.name), orNull(site.siteUrl), orNull(site.greeting), id);
+      db.prepare('UPDATE sites SET name = COALESCE(?, name), site_url = COALESCE(?, site_url), greeting = COALESCE(?, greeting), bot_name = COALESCE(?, bot_name) WHERE id = ?')
+        .run(orNull(site.name), orNull(site.siteUrl), orNull(site.greeting), orNull(site.botName), id);
     } else {
-      db.prepare('INSERT INTO sites (id, owner_id, name, site_url, greeting, created_at) VALUES (?,?,?,?,?,?)')
-        .run(id, orNull(site.ownerId), orNull(site.name), orNull(site.siteUrl), orNull(site.greeting), new Date().toISOString());
+      db.prepare('INSERT INTO sites (id, owner_id, name, site_url, greeting, bot_name, created_at) VALUES (?,?,?,?,?,?,?)')
+        .run(id, orNull(site.ownerId), orNull(site.name), orNull(site.siteUrl), orNull(site.greeting), orNull(site.botName || 'Divafits AI Assistant'), new Date().toISOString());
     }
     return id;
   },
   updateSiteSettings(siteId, settings) {
     const s = this.getSite(siteId);
     if (!s) return;
-    db.prepare('UPDATE sites SET name=?, site_url=?, greeting=?, theme_color=?, webhook_url=? WHERE id=?')
+    db.prepare('UPDATE sites SET name=?, site_url=?, greeting=?, theme_color=?, webhook_url=?, bot_name=?, hide_branding=?, custom_brand_name=?, custom_brand_url=? WHERE id=?')
       .run(
         orNull(settings.name !== undefined ? settings.name : s.name),
         orNull(settings.siteUrl !== undefined ? settings.siteUrl : s.site_url),
         orNull(settings.greeting !== undefined ? settings.greeting : s.greeting),
         orNull(settings.themeColor !== undefined ? settings.themeColor : s.theme_color),
         orNull(settings.webhookUrl !== undefined ? settings.webhookUrl : s.webhook_url),
+        orNull(settings.botName !== undefined ? settings.botName : s.bot_name),
+        settings.hideBranding !== undefined ? (settings.hideBranding ? 1 : 0) : (s.hide_branding ? 1 : 0),
+        orNull(settings.customBrandName !== undefined ? settings.customBrandName : s.custom_brand_name),
+        orNull(settings.customBrandUrl !== undefined ? settings.customBrandUrl : s.custom_brand_url),
         s.id
       );
+  },
+  setSiteWhitelabel(siteId, isWhitelabel) {
+    const s = this.getSite(siteId);
+    if (!s) return;
+    db.prepare('UPDATE sites SET is_whitelabel = ? WHERE id = ?').run(isWhitelabel ? 1 : 0, s.id);
   },
 
 

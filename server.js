@@ -239,7 +239,22 @@ app.post('/api/lead', requireSiteExists, verifyOrigin, rateLimit, (req, res) => 
 app.get('/api/site-config', (req, res) => {
   const site = store.getSite(reqSiteId(req));
   if (!site) return res.status(404).json({ error: 'Site not found' });
-  res.json({ siteId: site.id, name: site.name || site.id, greeting: site.greeting || null, themeColor: site.theme_color || '#2563eb' });
+  const isWhitelabel = Boolean(site.is_whitelabel);
+  const botName = site.bot_name || config.bot.name || 'Divafits AI Assistant';
+  const hideBranding = isWhitelabel ? Boolean(site.hide_branding) : false;
+  const customBrandName = isWhitelabel ? (site.custom_brand_name || null) : null;
+  const customBrandUrl = isWhitelabel ? (site.custom_brand_url || null) : null;
+  res.json({
+    siteId: site.id,
+    name: site.name || site.id,
+    botName,
+    greeting: site.greeting || null,
+    themeColor: site.theme_color || '#2563eb',
+    isWhitelabel,
+    hideBranding,
+    customBrandName,
+    customBrandUrl
+  });
 });
 
 /* ================= CLIENT DASHBOARD API (auth) ================= */
@@ -248,16 +263,26 @@ app.get('/api/my/sites', requireAuth, (req, res) => {
 });
 
 app.post('/api/my/sites', requireAuth, (req, res) => {
-  const { name, siteUrl, greeting } = req.body || {};
+  const { name, siteUrl, greeting, botName } = req.body || {};
   const id = store.sanitizeSiteId((req.body && req.body.id) || (name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-'));
   if (!id || id === 'default') return res.status(400).json({ error: 'enter a valid site id/name' });
-  store.upsertSite({ id, ownerId: req.user.id, name, siteUrl, greeting });
+  store.upsertSite({ id, ownerId: req.user.id, name, siteUrl, greeting, botName: botName || 'Divafits AI Assistant' });
   res.json({ ok: true, siteId: id });
 });
 
 app.post('/api/my/sites/:siteId', requireAuth, requireSiteOwner, (req, res) => {
-  const { name, siteUrl, greeting, themeColor, webhookUrl } = req.body || {};
-  store.updateSiteSettings(req.siteId, { name, siteUrl, greeting, themeColor, webhookUrl });
+  const site = store.getSite(req.siteId);
+  const isWhitelabel = req.user.role === 'admin' || Boolean(site && site.is_whitelabel);
+  const { name, siteUrl, greeting, themeColor, webhookUrl, botName, hideBranding, customBrandName, customBrandUrl } = req.body || {};
+
+  const updateData = { name, siteUrl, greeting, themeColor, webhookUrl };
+  if (isWhitelabel) {
+    if (botName !== undefined) updateData.botName = botName;
+    if (hideBranding !== undefined) updateData.hideBranding = hideBranding;
+    if (customBrandName !== undefined) updateData.customBrandName = customBrandName;
+    if (customBrandUrl !== undefined) updateData.customBrandUrl = customBrandUrl;
+  }
+  store.updateSiteSettings(req.siteId, updateData);
   res.json({ ok: true, siteId: req.siteId });
 });
 
@@ -354,6 +379,13 @@ app.get('/api/admin/users', requireAuth, requireAdmin, (req, res) => {
 });
 app.get('/api/admin/sites', requireAuth, requireAdmin, (req, res) => {
   res.json(store.getAllSites().map(withStats));
+});
+
+app.post('/api/admin/sites/:siteId/whitelabel', requireAuth, requireAdmin, (req, res) => {
+  const siteId = store.sanitizeSiteId(req.params.siteId);
+  const isWhitelabel = req.body && (req.body.isWhitelabel === true || req.body.isWhitelabel === 1 || req.body.isWhitelabel === '1');
+  store.setSiteWhitelabel(siteId, isWhitelabel);
+  res.json({ ok: true, siteId, isWhitelabel });
 });
 
 /* ---------- helpers ---------- */
@@ -535,6 +567,11 @@ function summary(siteId) {
     greeting: (site && site.greeting) || null,
     themeColor: (site && site.theme_color) || '#2563eb',
     webhookUrl: (site && site.webhook_url) || '',
+    isWhitelabel: Boolean(site && site.is_whitelabel),
+    botName: (site && site.bot_name) || 'Divafits AI Assistant',
+    hideBranding: Boolean(site && site.hide_branding),
+    customBrandName: (site && site.custom_brand_name) || '',
+    customBrandUrl: (site && site.custom_brand_url) || '',
     analytics,
     kb: { siteName: kb.siteName, siteUrl: kb.siteUrl, trainedAt: kb.trainedAt, pages: kb.pages, chunks: kb.chunkCount || 0, indexed: kb.indexed },
     conversations: Object.keys(chats.conversations).length,
@@ -550,6 +587,8 @@ function withStats(s) {
   const ans = store.getAnalytics(s.id);
   return {
     id: s.id, name: s.name || s.id, siteUrl: s.site_url, greeting: s.greeting,
+    isWhitelabel: Boolean(s.is_whitelabel), botName: s.bot_name || 'Divafits AI Assistant',
+    hideBranding: Boolean(s.hide_branding), customBrandName: s.custom_brand_name || '', customBrandUrl: s.custom_brand_url || '',
     ownerId: s.owner_id, createdAt: s.created_at,
     trained: kb.indexed, pages: kb.pages, chunks: kb.chunkCount || 0,
     sessions: ans.sessions, messages: ans.messages, liveChats: ans.live_chats, leads: leads.leads.length

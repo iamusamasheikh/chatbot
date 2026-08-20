@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Dashboard · Usama Sheikh AI</title>
+<title>Dashboard · Divafits AI</title>
 <style>
   :root{--sidebar-bg:#0f172a;--sidebar-hover:#1e293b;--sidebar-active:#2563eb;--blue:#2563eb;--violet:#7c3aed;--bg:#f8fafc;--card:#ffffff;--line:#e2e8f0;--muted:#64748b}
   *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif}
@@ -54,7 +54,7 @@
   
   .code{background:#0f172a;color:#34d399;padding:16px;border-radius:10px;font-size:13px;white-space:pre-wrap;word-break:break-all;font-family:Consolas,monospace;border:1px solid #1e293b}
   .badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:700}
-  .ok{background:#d1fae5;color:#065f46}.no{background:#fee2e2;color:#991b1b}
+  .ok{background:#d1fae5;color:#065f46}.no{background:#fee2e2;color:#991b1b}.gold{background:#fef3c7;color:#92400e}
   
   input,select{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 14px;font-size:13.5px;outline:none;transition:border-color 0.15s ease}
   input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,0.1)}
@@ -74,7 +74,7 @@
   <div class="brand">
     <div class="brand-logo">⚡</div>
     <div>
-      <div class="brand-name">Usama Sheikh AI</div>
+      <div class="brand-name">Divafits AI</div>
       <div class="brand-sub">SaaS Control Panel</div>
     </div>
   </div>
@@ -183,6 +183,7 @@
       <div class="tabcontent" id="tab-settings">
         <div class="card">
           <h2 style="font-size:16px;font-weight:700;margin-bottom:12px">Chatbot Customization & Settings</h2>
+          
           <label style="font-size:12px;font-weight:600;color:#334155;margin:10px 0 4px;display:block">Site Name</label>
           <input type="text" id="stName" placeholder="My Shop">
           
@@ -199,6 +200,43 @@
           
           <label style="font-size:12px;font-weight:600;color:#334155;margin:14px 0 4px;display:block">Lead Webhook URL (optional — POSTs leads to your server/Zapier)</label>
           <input type="url" id="stWebhook" placeholder="https://yoursite.com/webhook">
+
+          <!-- White-Label & AI Assistant Customization -->
+          <div style="margin-top:24px;padding:16px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+              <h3 style="font-size:15px;font-weight:700;color:#0f172a;display:flex;align-items:center;gap:6px">
+                🏷️ White-Label & AI Name Branding
+              </h3>
+              <span id="stWhitelabelBadge" class="badge"></span>
+            </div>
+            <p style="font-size:12.5px;color:#64748b;margin-bottom:14px">
+              Personalize your AI Assistant's name and remove/replace Divafits branding across the chat widget.
+            </p>
+
+            <div id="stWhitelabelLockedNotice" style="display:none;background:#fef3c7;color:#92400e;padding:10px 14px;border-radius:8px;font-size:12.5px;margin-bottom:14px;border:1px solid #fde68a">
+              🔒 <b>White-Label Upgrade Required:</b> To customize the AI Assistant name or remove the Divafits "Powered By" branding, please contact the administrator to activate White-Label on your website.
+            </div>
+
+            <div id="stWhitelabelFields">
+              <label style="font-size:12px;font-weight:600;color:#334155;margin:8px 0 4px;display:block">AI Assistant Name (Header Title)</label>
+              <input type="text" id="stBotName" placeholder="Divafits AI Assistant">
+
+              <div style="margin-top:14px">
+                <label style="display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#1e293b;cursor:pointer">
+                  <input type="checkbox" id="stHideBranding" style="width:18px;height:18px;cursor:pointer">
+                  Hide "Powered by" Footer Completely
+                </label>
+              </div>
+
+              <div id="stCustomBrandGroup" style="margin-top:14px">
+                <label style="font-size:12px;font-weight:600;color:#334155;margin:8px 0 4px;display:block">Custom Footer Brand Name (Optional)</label>
+                <input type="text" id="stCustomBrandName" placeholder="e.g. My Brand Name">
+
+                <label style="font-size:12px;font-weight:600;color:#334155;margin:10px 0 4px;display:block">Custom Footer Brand URL</label>
+                <input type="url" id="stCustomBrandUrl" placeholder="https://mybrand.com">
+              </div>
+            </div>
+          </div>
           
           <button class="btn green" id="stSave" style="margin-top:16px">Save Settings</button>
 
