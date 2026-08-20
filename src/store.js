@@ -106,6 +106,13 @@ const store = {
     if (!s) return;
     db.prepare('UPDATE sites SET is_whitelabel = ? WHERE id = ?').run(isWhitelabel ? 1 : 0, s.id);
   },
+  pingSite(siteId) {
+    const id = sanitizeSiteId(siteId);
+    if (!id) return;
+    try {
+      db.prepare('UPDATE sites SET last_ping_at = ? WHERE id = ?').run(new Date().toISOString(), id);
+    } catch (e) {}
+  },
 
 
   /* ================= KNOWLEDGE ================= */

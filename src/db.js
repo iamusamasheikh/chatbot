@@ -90,5 +90,6 @@ addColumn('sites', 'bot_name', "TEXT DEFAULT 'Nova AI'");
 addColumn('sites', 'hide_branding', 'INTEGER DEFAULT 0');
 addColumn('sites', 'custom_brand_name', 'TEXT');
 addColumn('sites', 'custom_brand_url', 'TEXT');
+addColumn('sites', 'last_ping_at', 'TEXT');
 
 module.exports = db;

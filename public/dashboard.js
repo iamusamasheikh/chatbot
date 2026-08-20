@@ -129,6 +129,17 @@
                  '<script src="' + scriptOrigin + '/widget.js" defer></script>';
       document.getElementById('embedCode').textContent = code;
 
+      var embedBadge = document.getElementById('stEmbedStatusBadge');
+      if (embedBadge) {
+        if (d.embedActive) {
+          embedBadge.className = 'badge ok';
+          embedBadge.innerHTML = '🟢 Verified & Active';
+        } else {
+          embedBadge.className = 'badge gold';
+          embedBadge.innerHTML = '🟡 Pending Installation';
+        }
+      }
+
       document.getElementById('trainUrl').value = d.siteUrl || '';
       document.getElementById('stName').value = d.siteName || '';
       document.getElementById('stUrl').value = d.siteUrl || '';
@@ -205,11 +216,14 @@
   /* ---- verify embed ---- */
   document.getElementById('btnVerifyEmbed').addEventListener('click', function () {
     var st = document.getElementById('embedVerifyStatus');
-    st.innerHTML = 'Verifying live site HTML…';
+    st.innerHTML = '🔍 Checking widget installation on website…';
     req('/api/my/sites/' + currentSite + '/verify-embed').then(function (d) {
-      st.innerHTML = d.active ? '<span class="badge ok">' + esc(d.message) + '</span>' : '<span class="badge no">' + esc(d.message) + '</span>';
+      st.innerHTML = d.active
+        ? '<span class="badge ok" style="padding:6px 12px;font-size:12.5px">✅ ' + esc(d.message) + '</span>'
+        : '<span class="badge gold" style="padding:6px 12px;font-size:12.5px">⚠️ ' + esc(d.message) + '</span>';
+      if (d.active) { loadSites(); }
     }).catch(function (e) {
-      st.innerHTML = '<span class="badge no">' + esc(e.message) + '</span>';
+      st.innerHTML = '<span class="badge no" style="padding:6px 12px;font-size:12.5px">❌ ' + esc(e.message) + '</span>';
     });
   });
 

@@ -239,6 +239,7 @@ app.post('/api/lead', requireSiteExists, verifyOrigin, rateLimit, (req, res) => 
 app.get('/api/site-config', (req, res) => {
   const site = store.getSite(reqSiteId(req));
   if (!site) return res.status(404).json({ error: 'Site not found' });
+  store.pingSite(site.id);
   const isWhitelabel = Boolean(site.is_whitelabel);
   const botName = isWhitelabel ? (site.bot_name || config.bot.name || 'Nova AI') : (config.bot.name || 'Nova AI');
   const hideBranding = isWhitelabel ? Boolean(site.hide_branding) : false;
@@ -302,26 +303,44 @@ app.get('/api/my/sites/:siteId/leads/export', requireAuth, requireSiteOwner, (re
 
 app.get('/api/my/sites/:siteId/verify-embed', requireAuth, requireSiteOwner, async (req, res) => {
   const site = store.getSite(req.siteId);
-  if (!site || !site.site_url) return res.status(400).json({ active: false, error: 'Set your website URL in Settings first.' });
-  try {
-    const ans = store.getAnalytics(req.siteId);
-    const hasActivity = (ans && (ans.sessions > 0 || ans.messages > 0 || ans.leads > 0));
-    const scraper = require('./src/scraper');
-    const page = await scraper.fetchPage(site.site_url);
-    const html = page ? (page.html || '') : '';
-    const hasWidget = html.toLowerCase().includes('widget.js') || html.toLowerCase().includes('aichatconfig') || html.toLowerCase().includes('divafits') || html.toLowerCase().includes('aichat');
-    if (hasWidget || hasActivity) {
-      res.json({ active: true, message: `Widget verified and active on ${site.site_url}! 🎉` });
-    } else {
-      res.json({ active: false, message: `Widget snippet not detected on ${site.site_url}. Make sure it is pasted before </body>.` });
-    }
-  } catch (e) {
-    const ans = store.getAnalytics(req.siteId);
-    if (ans && (ans.sessions > 0 || ans.messages > 0)) {
-      return res.json({ active: true, message: `Widget active on ${site.site_url}! 🎉` });
-    }
-    res.json({ active: false, message: 'Verification check failed: ' + e.message });
+  if (!site) return res.status(404).json({ active: false, error: 'Site not found.' });
+
+  const ans = store.getAnalytics(req.siteId);
+  const hasActivity = (ans && (ans.sessions > 0 || ans.messages > 0 || ans.leads > 0));
+  const isPinged = Boolean(site.last_ping_at);
+
+  // 1. Direct Ping or Real Activity Check (100% accurate when widget loads on site)
+  if (isPinged || hasActivity) {
+    const pingTime = site.last_ping_at ? new Date(site.last_ping_at).toLocaleString() : 'recently';
+    return res.json({
+      active: true,
+      message: `Widget verified and active on your website! 🎉 (Last detected: ${pingTime})`
+    });
   }
+
+  // 2. HTTP Scraper Fallback if site_url is set
+  if (site.site_url) {
+    try {
+      const scraper = require('./src/scraper');
+      const page = await scraper.fetchPage(site.site_url);
+      const html = page ? (page.html || '') : '';
+      const lowerHtml = html.toLowerCase();
+      const hasWidget = lowerHtml.includes('widget.js') || lowerHtml.includes('aichatconfig') || lowerHtml.includes('divafits') || lowerHtml.includes('aichat');
+      if (hasWidget) {
+        store.pingSite(req.siteId);
+        return res.json({ active: true, message: `Widget verified and active on ${site.site_url}! 🎉` });
+      }
+    } catch (e) {
+      /* Scraper fallback failed */
+    }
+  }
+
+  res.json({
+    active: false,
+    message: site.site_url
+      ? `Widget snippet not detected yet on ${site.site_url}. Make sure the code is pasted before </body> and open your website in your browser!`
+      : 'Widget snippet not detected yet. Please set your Website URL in Settings, paste the code, and open your website!'
+  });
 });
 
 app.post('/api/my/sites/:siteId/test-email', requireAuth, requireSiteOwner, (req, res) => {
@@ -600,6 +619,8 @@ function withStats(s) {
     isWhitelabel: Boolean(s.is_whitelabel), botName: s.bot_name || 'Nova AI',
     hideBranding: Boolean(s.hide_branding), customBrandName: s.custom_brand_name || '', customBrandUrl: s.custom_brand_url || '',
     ownerId: s.owner_id, createdAt: s.created_at,
+    lastPingAt: s.last_ping_at || null,
+    embedActive: Boolean(s.last_ping_at || ans.sessions > 0 || ans.messages > 0 || leads.leads.length > 0),
     trained: kb.indexed, pages: kb.pages, chunks: kb.chunkCount || 0,
     sessions: ans.sessions, messages: ans.messages, liveChats: ans.live_chats, leads: leads.leads.length
   };
