@@ -106,7 +106,7 @@
   function loadSites() {
     fetch('/api/admin/sites', { credentials: 'same-origin' }).then(auth).then(function (sites) {
       document.getElementById('sitesBox').innerHTML =
-        '<table><tr><th>Site ID</th><th>Site Name</th><th>AI Bot Name</th><th>Owner</th><th>White-Label</th><th>Sessions</th><th>Captured Leads</th><th>Actions</th></tr>' +
+        '<table><tr><th>Site ID</th><th>Site Name</th><th>Website Domain</th><th>AI Bot Name</th><th>Owner</th><th>White-Label</th><th>Sessions</th><th>Captured Leads</th><th>Actions</th></tr>' +
         sites.map(function (s) {
           var isWl = Boolean(s.isWhitelabel);
           var wlStatus = isWl ? '<span class="badge ok">⭐ White-Label</span>' : '<span class="badge gold">🔒 Standard</span>';
@@ -114,12 +114,16 @@
             ? '<button class="btn gray toggle-wl" data-id="' + esc(s.id) + '" data-wl="0">Revoke White-Label</button>'
             : '<button class="btn green toggle-wl" data-id="' + esc(s.id) + '" data-wl="1">⭐ Grant White-Label</button>';
           
-          var sessBtn = '<button class="btn-pill btn-view-sessions" data-id="' + esc(s.id) + '" data-name="' + esc(s.name || s.id) + '">💬 ' + s.sessions + ' Sessions</button>';
-          var leadBtn = '<button class="btn-pill btn-view-leads" data-id="' + esc(s.id) + '" data-name="' + esc(s.name || s.id) + '" style="background:#ecfdf5;color:#065f46;border-color:#a7f3d0">📩 ' + s.leads + ' Leads</button>';
+          var sessBtn = '<button class="btn-pill btn-view-sessions" data-id="' + esc(s.id) + '" data-name="' + esc(s.name || s.id) + '" data-url="' + esc(s.siteUrl || '') + '">💬 ' + s.sessions + ' Sessions</button>';
+          var leadBtn = '<button class="btn-pill btn-view-leads" data-id="' + esc(s.id) + '" data-name="' + esc(s.name || s.id) + '" data-url="' + esc(s.siteUrl || '') + '" style="background:#ecfdf5;color:#065f46;border-color:#a7f3d0">📩 ' + s.leads + ' Leads</button>';
+          var domainDisplay = s.siteUrl
+            ? '<a href="' + esc(s.siteUrl) + '" target="_blank" rel="noopener" style="color:#2563eb;font-weight:600">🌐 ' + esc(s.siteUrl.replace(/^https?:\/\//i, '').replace(/\/$/, '')) + '</a>'
+            : '<span style="color:#94a3b8;font-size:12px;font-style:italic">Not set</span>';
 
           return '<tr>' +
             '<td><b>' + esc(s.id) + '</b></td>' +
             '<td>' + esc(s.name) + '</td>' +
+            '<td>' + domainDisplay + '</td>' +
             '<td><span style="color:#4f46e5;font-weight:600">' + esc(s.botName || 'Nova AI') + '</span></td>' +
             '<td>User #' + (s.ownerId || '—') + '</td>' +
             '<td>' + wlStatus + '</td>' +
@@ -155,7 +159,8 @@
         btn.addEventListener('click', function () {
           var id = this.getAttribute('data-id');
           var sname = this.getAttribute('data-name');
-          modalTitle.innerHTML = '📩 Captured Leads for <b>' + esc(sname) + '</b> (' + esc(id) + ')';
+          var surl = this.getAttribute('data-url');
+          modalTitle.innerHTML = '📩 Captured Leads for <b>' + esc(sname) + '</b> ' + (surl ? '<span style="font-size:12px;color:#2563eb;font-weight:normal">(' + esc(surl) + ')</span>' : '') + ' <span style="font-size:11px;color:#64748b">[' + esc(id) + ']</span>';
           modalExportBtn.href = '/api/my/sites/' + encodeURIComponent(id) + '/leads/export';
           modalExportBtn.style.display = 'inline-flex';
           modalBody.innerHTML = '<div style="color:#64748b;padding:20px;text-align:center">Fetching lead data…</div>';
@@ -190,7 +195,8 @@
         btn.addEventListener('click', function () {
           var id = this.getAttribute('data-id');
           var sname = this.getAttribute('data-name');
-          modalTitle.innerHTML = '💬 Chat Sessions & History for <b>' + esc(sname) + '</b> (' + esc(id) + ')';
+          var surl = this.getAttribute('data-url');
+          modalTitle.innerHTML = '💬 Chat Sessions for <b>' + esc(sname) + '</b> ' + (surl ? '<span style="font-size:12px;color:#2563eb;font-weight:normal">(' + esc(surl) + ')</span>' : '') + ' <span style="font-size:11px;color:#64748b">[' + esc(id) + ']</span>';
           modalExportBtn.style.display = 'none';
           modalBody.innerHTML = '<div style="color:#64748b;padding:20px;text-align:center">Fetching chat history…</div>';
           modal.classList.add('open');
