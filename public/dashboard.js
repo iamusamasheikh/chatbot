@@ -145,7 +145,7 @@
       var customBrandNameIn = document.getElementById('stCustomBrandName');
       var customBrandUrlIn = document.getElementById('stCustomBrandUrl');
 
-      botNameIn.value = d.botName || 'Divafits AI Assistant';
+      botNameIn.value = d.botName || 'Nova AI';
       hideBrandingIn.checked = Boolean(d.hideBranding);
       customBrandNameIn.value = d.customBrandName || '';
       customBrandUrlIn.value = d.customBrandUrl || '';

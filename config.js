@@ -48,7 +48,7 @@ const config = {
 
   // Chatbot personality & system prompt.
   bot: {
-    name: process.env.BOT_NAME || 'Divafits AI Assistant',
+    name: process.env.BOT_NAME || 'Nova AI',
     greeting: process.env.BOT_GREETING || 'Hi there! 👋 How can I help you today?',
     offlineGreeting: process.env.BOT_OFFLINE_GREETING || 'Hi! 👋 Our AI assistant can answer instantly. Need a human? We will reply as soon as possible.',
     systemPrompt: process.env.SYSTEM_PROMPT ||

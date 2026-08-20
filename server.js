@@ -240,7 +240,7 @@ app.get('/api/site-config', (req, res) => {
   const site = store.getSite(reqSiteId(req));
   if (!site) return res.status(404).json({ error: 'Site not found' });
   const isWhitelabel = Boolean(site.is_whitelabel);
-  const botName = site.bot_name || config.bot.name || 'Divafits AI Assistant';
+  const botName = isWhitelabel ? (site.bot_name || config.bot.name || 'Nova AI') : (config.bot.name || 'Nova AI');
   const hideBranding = isWhitelabel ? Boolean(site.hide_branding) : false;
   const customBrandName = isWhitelabel ? (site.custom_brand_name || null) : null;
   const customBrandUrl = isWhitelabel ? (site.custom_brand_url || null) : null;
@@ -568,7 +568,7 @@ function summary(siteId) {
     themeColor: (site && site.theme_color) || '#2563eb',
     webhookUrl: (site && site.webhook_url) || '',
     isWhitelabel: Boolean(site && site.is_whitelabel),
-    botName: (site && site.bot_name) || 'Divafits AI Assistant',
+    botName: (site && site.bot_name) || 'Nova AI',
     hideBranding: Boolean(site && site.hide_branding),
     customBrandName: (site && site.custom_brand_name) || '',
     customBrandUrl: (site && site.custom_brand_url) || '',
@@ -587,7 +587,7 @@ function withStats(s) {
   const ans = store.getAnalytics(s.id);
   return {
     id: s.id, name: s.name || s.id, siteUrl: s.site_url, greeting: s.greeting,
-    isWhitelabel: Boolean(s.is_whitelabel), botName: s.bot_name || 'Divafits AI Assistant',
+    isWhitelabel: Boolean(s.is_whitelabel), botName: s.bot_name || 'Nova AI',
     hideBranding: Boolean(s.hide_branding), customBrandName: s.custom_brand_name || '', customBrandUrl: s.custom_brand_url || '',
     ownerId: s.owner_id, createdAt: s.created_at,
     trained: kb.indexed, pages: kb.pages, chunks: kb.chunkCount || 0,

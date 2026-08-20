@@ -67,7 +67,9 @@
     '.aichat-lead input:focus{border-color:#2563eb !important}',
     '.aichat-lead button{background:#10b981 !important;color:#ffffff !important;border:none;border-radius:10px;padding:10px;font-size:14px;cursor:pointer;font-weight:600}',
     '.aichat-powered{text-align:center;font-size:11px;color:#64748b !important;padding:6px 10px;background:#f8fafc !important;border-top:1px solid #f1f5f9;font-weight:500;letter-spacing:0.5px}',
-    '.aichat-powered a{color:#334155 !important;text-decoration:none;font-weight:700}'
+    '.aichat-powered a{color:#334155 !important;text-decoration:none;font-weight:700}',
+    '.aichat-sender-tag{font-size:11px;font-weight:700;color:#4f46e5 !important;margin-bottom:4px;display:flex;align-items:center;gap:4px;letter-spacing:0.2px}',
+    '.aichat-sender-tag.agent{color:#059669 !important}'
   ].join('\n');
 
   var style = document.createElement('style');
@@ -131,8 +133,8 @@
   var leadEl = widget.querySelector('.aichat-lead');
   var statusEl = widget.querySelector('.aichat-status');
   var poweredEl = widget.querySelector('.aichat-powered');
-  var defaultBotName = cfg.botName || cfg.title || 'Divafits AI Assistant';
-  widget.querySelector('.aichat-name').textContent = defaultBotName;
+  var currentBotName = cfg.botName || cfg.title || 'Nova AI';
+  widget.querySelector('.aichat-name').textContent = currentBotName;
   var remoteGreeting = null;
 
   function applyTheme(color) {
@@ -154,8 +156,11 @@
       .then(function (c) {
         if (c.themeColor) applyTheme(c.themeColor);
         if (c.greeting && !cfg.greeting) remoteGreeting = c.greeting;
-        if (c.botName && !cfg.botName && !cfg.title) {
-          widget.querySelector('.aichat-name').textContent = c.botName;
+        if (c.botName) {
+          currentBotName = c.botName;
+          if (!cfg.botName && !cfg.title) {
+            widget.querySelector('.aichat-name').textContent = currentBotName;
+          }
         }
         if (c.isWhitelabel) {
           if (c.hideBranding) {
@@ -201,10 +206,19 @@
     return out.join('<br>');
   }
 
-  function addMsg(text, who) {
+  function addMsg(text, who, senderName) {
     var d = document.createElement('div');
     d.className = 'aichat-msg aichat-' + who;
-    d.innerHTML = render(text);
+    var contentHtml = render(text);
+    if (who === 'bot') {
+      var bName = senderName || currentBotName || 'Nova AI';
+      d.innerHTML = '<div class="aichat-sender-tag">⚡ ' + escapeHtml(bName) + '</div>' + contentHtml;
+    } else if (who === 'agent') {
+      var aName = senderName || 'Support Agent';
+      d.innerHTML = '<div class="aichat-sender-tag agent">🧑‍💼 ' + escapeHtml(aName) + '</div>' + contentHtml;
+    } else {
+      d.innerHTML = contentHtml;
+    }
     d.querySelectorAll('a').forEach(function (a) { a.style.color = themeColor; });
     msgsEl.appendChild(d);
     msgsEl.scrollTop = msgsEl.scrollHeight;

@@ -80,7 +80,7 @@ const store = {
         .run(orNull(site.name), orNull(site.siteUrl), orNull(site.greeting), orNull(site.botName), id);
     } else {
       db.prepare('INSERT INTO sites (id, owner_id, name, site_url, greeting, bot_name, created_at) VALUES (?,?,?,?,?,?,?)')
-        .run(id, orNull(site.ownerId), orNull(site.name), orNull(site.siteUrl), orNull(site.greeting), orNull(site.botName || 'Divafits AI Assistant'), new Date().toISOString());
+        .run(id, orNull(site.ownerId), orNull(site.name), orNull(site.siteUrl), orNull(site.greeting), orNull(site.botName || 'Nova AI'), new Date().toISOString());
     }
     return id;
   },
