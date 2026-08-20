@@ -388,6 +388,16 @@ app.post('/api/admin/sites/:siteId/whitelabel', requireAuth, requireAdmin, (req,
   res.json({ ok: true, siteId, isWhitelabel });
 });
 
+app.get('/api/admin/sites/:siteId/leads', requireAuth, requireAdmin, (req, res) => {
+  const siteId = store.sanitizeSiteId(req.params.siteId);
+  res.json(store.getLeads(siteId));
+});
+
+app.get('/api/admin/sites/:siteId/conversations', requireAuth, requireAdmin, (req, res) => {
+  const siteId = store.sanitizeSiteId(req.params.siteId);
+  res.json(store.getChats(siteId));
+});
+
 /* ---------- helpers ---------- */
 function sendHtmlEmail(to, subject, htmlBody, textBody, leadData) {
   // Option A: External PHP Mailer Script (invokes PHP mail() on client's web server!)
